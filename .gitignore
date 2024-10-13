@@ -42,3 +42,7 @@ lerna-debug.log*
 # Temporary Files
 tmp.txt
 tmp/
+
+# Docker
+pgdata/
+.pnpm-store

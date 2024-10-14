@@ -9,6 +9,7 @@ module.exports = {
     '@typescript-eslint/eslint-plugin',
     'unused-imports',
     'no-comments',
+    'simple-import-sort',
   ],
   extends: [
     'plugin:@typescript-eslint/recommended',
@@ -35,11 +36,12 @@ module.exports = {
         argsIgnorePattern: '^_',
       },
     ],
-    'prettier/prettier': [
-      'error',
-      {
-        endOfLine: 'auto',
-      },
-    ],
+    'prettier/prettier': ['error', { endOfLine: 'auto' }],
+    'simple-import-sort/imports': 'error',
+    'simple-import-sort/exports': 'error',
+  },
+  parserOptions: {
+    sourceType: 'module',
+    ecmaVersion: 'latest',
   },
 };

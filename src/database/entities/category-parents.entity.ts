@@ -1,8 +1,9 @@
-import { Entity, ManyToOne, PrimaryColumn } from 'typeorm';
+import { Check, Entity, Index, ManyToOne, PrimaryColumn } from 'typeorm';
 
 import { Category } from './categories.entity';
 
 @Entity('category_parents')
+@Check(`parent_id <> category_id`)
 export class CategoryParent {
   @PrimaryColumn()
   categoryId: number;
@@ -10,6 +11,7 @@ export class CategoryParent {
   @PrimaryColumn()
   parentId: number;
 
+  @Index()
   @ManyToOne(() => Category, (category) => category.id, {
     nullable: false,
     onDelete: 'CASCADE',

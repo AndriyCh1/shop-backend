@@ -1,4 +1,10 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  Index,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 import { Order } from './orders.entity';
 import { ProductVariant } from './product-variants.entity';
@@ -8,9 +14,11 @@ export class OrderItem {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Index()
   @ManyToOne(() => Order, (order) => order.id)
   order: Order;
 
+  @Index()
   @ManyToOne(() => ProductVariant, (variant) => variant.id)
   productVariant: ProductVariant;
 

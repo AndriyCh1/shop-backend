@@ -1,4 +1,4 @@
-import { Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, Index, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 import { Category } from './categories.entity';
 import { Product } from './products.entity';
@@ -8,9 +8,11 @@ export class ProductCategory {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Index()
   @ManyToOne(() => Product, (product) => product.id)
   product: Product;
 
+  @Index()
   @ManyToOne(() => Category, (category) => category.id)
   category: Category;
 }

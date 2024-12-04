@@ -2,6 +2,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
   ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -14,6 +15,7 @@ export class ProductVariant {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Index()
   @ManyToOne(() => Product, (product) => product.id, {
     onDelete: 'CASCADE',
     nullable: false,
@@ -44,6 +46,7 @@ export class ProductVariant {
   @Column({ type: 'int', default: 0 })
   stockQuantity: number;
 
+  @Index({ fulltext: true })
   @Column({ type: 'jsonb', nullable: true })
   attributes?: Record<string, unknown>;
 

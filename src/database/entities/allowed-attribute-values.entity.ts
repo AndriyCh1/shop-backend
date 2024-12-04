@@ -1,7 +1,9 @@
 import {
+  Check,
   Column,
   CreateDateColumn,
   Entity,
+  Index,
   ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -10,10 +12,12 @@ import {
 import { AllowedAttribute } from './allowed-attributes.entity';
 
 @Entity('allowed_attribute_values')
+@Check(`range_max > range_min`)
 export class AllowedAttributeValue {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Index()
   @ManyToOne(() => AllowedAttribute, (attribute) => attribute.id, {
     nullable: false,
     onDelete: 'CASCADE',

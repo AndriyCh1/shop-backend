@@ -1,4 +1,4 @@
-import { Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, Index, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 import { User } from './users.entity';
 
@@ -7,6 +7,7 @@ export class Cart {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Index()
   @ManyToOne(() => User, (user) => user.id, {
     nullable: false,
     onDelete: 'CASCADE',

@@ -2,6 +2,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
   ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -19,6 +20,7 @@ export class Order {
   @ManyToOne(() => User, (user) => user.id)
   user: User;
 
+  @Index()
   @ManyToOne(() => OrderStatus, (status) => status.id, { onDelete: 'SET NULL' })
   orderStatus: OrderStatus;
 

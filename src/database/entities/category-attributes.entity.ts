@@ -1,4 +1,4 @@
-import { Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, Index, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 import { AllowedAttribute } from './allowed-attributes.entity';
 import { Category } from './categories.entity';
@@ -8,9 +8,11 @@ export class CategoryAttribute {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Index()
   @ManyToOne(() => Category, (category) => category.id)
   category: Category;
 
+  @Index()
   @ManyToOne(() => AllowedAttribute, (attribute) => attribute.id)
   attribute: AllowedAttribute;
 }

@@ -13,8 +13,8 @@ export const dataSource = new DataSource({
   synchronize: false,
   dropSchema: false,
   logging: process.env.NODE_ENV !== 'production',
+  namingStrategy: new SnakeNamingStrategy(),
   entities: [__dirname + '/entities/*.entity{.ts,.js}'],
   migrations: [__dirname + '/migrations/*{.ts,.js}'],
   migrationsTableName: 'migrations_typeorm',
-  namingStrategy: new SnakeNamingStrategy(),
 });

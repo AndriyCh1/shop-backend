@@ -2,11 +2,12 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  OneToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
+import { UserRole } from './user-roles.entity';
 import { Wishlist } from './wishlist.entity';
 
 @Entity('users')
@@ -29,8 +30,11 @@ export class User {
   @Column({ type: 'boolean', default: true })
   active: boolean;
 
-  @OneToOne(() => Wishlist, (wishlist) => wishlist.user)
-  wishlist: Wishlist;
+  @OneToMany(() => Wishlist, (wishlist) => wishlist.user)
+  wishlist: Wishlist[];
+
+  @OneToMany(() => UserRole, (userRole) => userRole.user)
+  userRoles: UserRole[];
 
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;

@@ -9,10 +9,10 @@ export class Wishlist {
   id: number;
 
   @Index()
-  @ManyToOne(() => User, (user) => user.id)
+  @ManyToOne(() => User, (user) => user.wishlist)
   user: User;
 
   @Index()
-  @ManyToOne(() => Product, (product) => product.id)
+  @ManyToOne(() => Product, (product) => product.wishlist)
   product: Product;
 }

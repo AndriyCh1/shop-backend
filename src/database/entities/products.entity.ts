@@ -2,9 +2,12 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+
+import { Wishlist } from './wishlist.entity';
 
 @Entity('products')
 export class Product {
@@ -34,6 +37,9 @@ export class Product {
 
   @Column({ type: 'int', default: 0 })
   reviewCount: number;
+
+  @OneToMany(() => Wishlist, (wishlist) => wishlist.product)
+  wishlist: Wishlist[];
 
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;

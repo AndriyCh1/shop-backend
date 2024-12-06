@@ -1,6 +1,5 @@
 import { ArgumentsHost, Catch, ExceptionFilter } from '@nestjs/common';
 
-import { AppHttpException } from '#shared/exceptions/app-http-exception';
 import { ErrorHandlerService } from '#shared/utils/error-handler.util';
 
 @Catch()
@@ -12,18 +11,14 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const response = ctx.getResponse();
     const request = ctx.getRequest();
 
-    this.errorHandler.handleError(exception);
-
-    const { status, code } =
-      exception instanceof AppHttpException
-        ? { status: exception.getStatus(), code: exception.code }
-        : { status: 500, code: 'UNKNOWN' };
+    const { status = 500, message } = this.errorHandler.handle(exception);
 
     response.status(status).json({
-      code,
+      success: false,
+      message: message || 'Internal server error',
+      statusCode: status,
       timestamp: new Date().toISOString(),
       path: request.url,
-      error: (exception as Error).message || 'Internal server error',
     });
   }
 }

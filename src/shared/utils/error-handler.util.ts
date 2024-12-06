@@ -1,8 +1,9 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { HttpException, Injectable, Logger } from '@nestjs/common';
 
-import { AppError } from '#shared/exceptions/app-error';
-import { AppHttpException } from '#shared/exceptions/app-http-exception';
-
+export interface ErrorData {
+  message: string;
+  status?: number;
+}
 /**
  *  Centralized error-handling approach ensures consistency and better control over errors across
  *  various scenarios like HTTP requests, scheduled jobs, or startup processes.
@@ -11,38 +12,38 @@ import { AppHttpException } from '#shared/exceptions/app-http-exception';
 export class ErrorHandlerService {
   private readonly logger = new Logger(ErrorHandlerService.name);
 
-  handleError(error: unknown): void {
-    if (error instanceof AppHttpException) {
-      this.handleAppHttpException(error);
-    } else if (error instanceof AppError) {
-      this.handleAppError(error);
-    } else {
-      this.handleGenericError(error as Error);
+  handle(error: unknown): ErrorData {
+    if (error instanceof HttpException) {
+      return this.handleAppHttpException(error);
     }
+
+    return this.handleError(error as Error);
   }
 
-  private handleAppHttpException(error: AppHttpException): void {
+  private handleAppHttpException(error: HttpException): ErrorData {
     this.logger.error(
-      `Code: ${error.code}, Message: ${
-        error.code
-      }, Status: ${error.getStatus()}`,
+      `HTTP_EXCEPTION: Message: ${error.message}, Status: ${error.getStatus()}`,
       error.stack,
     );
 
     this.reportToMonitoring(error);
+
+    return {
+      message: error.message,
+      status: error.getStatus(),
+    };
   }
 
-  private handleAppError(error: AppError): void {
-    this.logger.error(`Code: ${error.code}, Message: ${error.message}`);
+  private handleError(error: Error): ErrorData {
+    this.logger.error(`ERROR: Message: ${error.message}`);
     this.reportToMonitoring(error);
+
+    return {
+      message: error.message,
+    };
   }
 
-  private handleGenericError(error: Error): void {
-    this.logger.error(error.message, error.stack);
-    this.reportToMonitoring(error);
-  }
-
-  private reportToMonitoring(error: Error): void {
+  private reportToMonitoring(error: Error) {
     // Integrate with Sentry, CloudWatch, etc.
     // Sentry.captureException(error);
     console.error('Error reported to monitoring tool:', error.message);

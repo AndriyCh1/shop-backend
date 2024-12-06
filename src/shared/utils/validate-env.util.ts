@@ -8,5 +8,10 @@ export const validateEnv = () => {
     DATABASE_USER: str(),
     DATABASE_NAME: str(),
     DATABASE_PORT: str(),
+    THROTTLER_LIMIT: num(),
+    THROTTLER_TTL: num(),
+    REDIS_HOST: str(),
+    REDIS_PORT: str(),
+    REDIS_PASSWORD: str(),
   });
 };

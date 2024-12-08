@@ -13,7 +13,7 @@
     "incremental": true,
     "skipLibCheck": true,
     "strictNullChecks": false,
-    "noImplicitAny": false,
+    "noImplicitAny": true,
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
@@ -32,5 +32,8 @@
     "fallbackPolling": "dynamicPriority",
     "synchronousWatchDirectory": true,
     "excludeDirectories": ["**/node_modules", "dist"]
+  },
+  "ts-node": {
+    "require": ["tsconfig-paths/register"]
   }
 }

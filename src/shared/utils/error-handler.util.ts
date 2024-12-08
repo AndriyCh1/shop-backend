@@ -35,7 +35,7 @@ export class ErrorHandlerService {
   }
 
   private handleError(error: Error): ErrorData {
-    this.logger.error(`ERROR: Message: ${error.message}`);
+    this.logger.error(`ERROR: Message: ${error.message}`, error.stack);
     this.reportToMonitoring(error);
 
     return {
@@ -43,9 +43,9 @@ export class ErrorHandlerService {
     };
   }
 
-  private reportToMonitoring(error: Error) {
+  private reportToMonitoring(_: Error) {
     // Integrate with Sentry, CloudWatch, etc.
     // Sentry.captureException(error);
-    console.error('Error reported to monitoring tool:', error.message);
+    // console.error('Error reported to monitoring tool:', error.message);
   }
 }

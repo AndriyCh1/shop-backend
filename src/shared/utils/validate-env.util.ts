@@ -13,5 +13,9 @@ export const validateEnv = () => {
     REDIS_HOST: str(),
     REDIS_PORT: str(),
     REDIS_PASSWORD: str(),
+    JWT_ACCESS_TOKEN_SECRET: str(),
+    JWT_REFRESH_TOKEN_SECRET: str(),
+    JWT_ACCESS_TOKEN_EXPIRATION: str(),
+    JWT_REFRESH_TOKEN_EXPIRATION: str(),
   });
 };

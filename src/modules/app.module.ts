@@ -8,13 +8,15 @@ import { WinstonModule } from 'nest-winston';
 
 import { winstonLoggerConfig } from '#config/logger.config';
 import { typeORMConfig } from '#config/typeorm.config';
+import { AuthModule } from '#modules/auth/auth.module';
 import { HealthModule } from '#modules/health/health.module';
+import { UsersModule } from '#modules/users/users.module';
 import { AllExceptionsFilter } from '#shared/filters/exceptions-filter.filter';
 import { ErrorHandlerService } from '#shared/utils/error-handler.util';
 
 @Module({
   imports: [
-    ConfigModule.forRoot(),
+    ConfigModule.forRoot({ isGlobal: true }),
     WinstonModule.forRoot(winstonLoggerConfig),
     ThrottlerModule.forRootAsync({
       imports: [ConfigModule],
@@ -35,6 +37,8 @@ import { ErrorHandlerService } from '#shared/utils/error-handler.util';
     }),
     HealthModule,
     TypeOrmModule.forRootAsync(typeORMConfig),
+    UsersModule,
+    AuthModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: AllExceptionsFilter },

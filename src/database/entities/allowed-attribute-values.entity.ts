@@ -12,7 +12,7 @@ import {
 import { AllowedAttribute } from './allowed-attributes.entity';
 
 @Entity('allowed_attribute_values')
-@Check(`range_max > range_min`)
+@Check(`"rangeMax" > "rangeMin"`)
 export class AllowedAttributeValue {
   @PrimaryGeneratedColumn()
   id: number;

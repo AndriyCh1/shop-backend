@@ -13,7 +13,7 @@ import { Product } from './products.entity';
 import { User } from './users.entity';
 
 @Entity('product_reviews')
-@Check(`rating >= 1 AND rating <= 5`)
+@Check(`"rating" >= 1 AND "rating" <= 5`)
 export class ProductReview {
   @PrimaryGeneratedColumn()
   id: number;

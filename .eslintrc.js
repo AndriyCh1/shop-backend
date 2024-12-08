@@ -39,6 +39,25 @@ module.exports = {
     'prettier/prettier': ['error', { endOfLine: 'auto' }],
     'simple-import-sort/imports': 'error',
     'simple-import-sort/exports': 'error',
+    'padding-line-between-statements': [
+      'error',
+      { blankLine: 'always', prev: 'import', next: '*' },
+      { blankLine: 'any', prev: 'import', next: 'import' },
+      { blankLine: 'always', prev: '*', next: ['const', 'let', 'var'] },
+      { blankLine: 'always', prev: ['const', 'let', 'var'], next: '*' },
+      { blankLine: 'any', prev: ['const', 'let', 'var'], next: '*' },
+      {
+        blankLine: 'always',
+        prev: '*',
+        next: ['class', 'if', 'while', 'switch', 'try'],
+      },
+      {
+        blankLine: 'always',
+        prev: ['class', 'if', 'while', 'switch', 'try'],
+        next: '*',
+      },
+      { blankLine: 'always', prev: '*', next: 'return' },
+    ],
   },
   parserOptions: {
     sourceType: 'module',

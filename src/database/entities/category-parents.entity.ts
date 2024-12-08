@@ -3,7 +3,7 @@ import { Check, Entity, Index, ManyToOne, PrimaryColumn } from 'typeorm';
 import { Category } from './categories.entity';
 
 @Entity('category_parents')
-@Check(`parent_id <> category_id`)
+@Check(`"parentId" <> "categoryId"`)
 export class CategoryParent {
   @PrimaryColumn()
   categoryId: number;

@@ -7,7 +7,8 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-import { UserRole } from './user-roles.entity';
+import { UserRole } from '#shared/constants/user-role.enum';
+
 import { Wishlist } from './wishlist.entity';
 
 @Entity('users')
@@ -33,8 +34,8 @@ export class User {
   @OneToMany(() => Wishlist, (wishlist) => wishlist.user)
   wishlist: Wishlist[];
 
-  @OneToMany(() => UserRole, (userRole) => userRole.user)
-  userRoles: UserRole[];
+  @Column({ type: 'enum', enum: UserRole })
+  role: UserRole;
 
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;

@@ -1,6 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class AddTriggers1733348258468 implements MigrationInterface {
+export class AddTriggers1733596471560 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
       CREATE OR REPLACE FUNCTION check_categories_circular_dependency()
@@ -10,23 +10,23 @@ export class AddTriggers1733348258468 implements MigrationInterface {
       BEGIN
           -- Recursive query to detect circular dependency
           WITH RECURSIVE ancestor_path AS (
-              SELECT parent_id AS ancestor
+              SELECT "parentId" AS ancestor
               FROM category_parents
-              WHERE category_id = NEW.parent_id
+              WHERE "categoryId" = NEW."parentId"
               UNION ALL
-              SELECT cp.parent_id
+              SELECT cp."parentId"
               FROM category_parents cp
-              INNER JOIN ancestor_path ap ON cp.category_id = ap.ancestor
+              INNER JOIN ancestor_path ap ON cp."categoryId" = ap.ancestor
           )
           SELECT EXISTS (
               SELECT 1
               FROM ancestor_path
-              WHERE ancestor = NEW.category_id
+              WHERE ancestor = NEW."categoryId"
           ) INTO is_circular;
 
           -- If a circular dependency is detected, raise an exception
           IF is_circular THEN
-              RAISE EXCEPTION 'Circular dependency detected for category_id %. Parent_id: %', NEW.category_id, NEW.parent_id;
+              RAISE EXCEPTION 'Circular dependency detected for "categoryId" %. "parentId": %', NEW."categoryId", NEW."parentId";
           END IF;
 
           RETURN NEW;
@@ -47,26 +47,26 @@ export class AddTriggers1733348258468 implements MigrationInterface {
       IF TG_OP = 'INSERT' THEN
           UPDATE products
           SET
-              cumulative_rating_sum = cumulative_rating_sum + NEW.rating,
-              review_count = review_count + 1
-          WHERE id = NEW.product_id;
+              "cumulativeRatingSum" = "cumulativeRatingSum" + NEW.rating,
+              "reviewCount" = "reviewCount" + 1
+          WHERE id = NEW."productId";
       END IF;
 
       -- Handle DELETE
       IF TG_OP = 'DELETE' THEN
           UPDATE products
           SET
-              cumulative_rating_sum = cumulative_rating_sum - OLD.rating,
-              review_count = review_count - 1
-          WHERE id = OLD.product_id;
+              "cumulativeRatingSum" = "cumulativeRatingSum" - OLD.rating,
+              "reviewCount" = "reviewCount" - 1
+          WHERE id = OLD."productId";
       END IF;
 
       -- Handle UPDATE
       IF TG_OP = 'UPDATE' THEN
           UPDATE products
           SET
-              cumulative_rating_sum = cumulative_rating_sum - OLD.rating + NEW.rating
-          WHERE id = NEW.product_id;
+              "cumulativeRatingSum" = "cumulativeRatingSum" - OLD.rating + NEW.rating
+          WHERE id = NEW."productId";
       END IF;
 
       RETURN NULL;

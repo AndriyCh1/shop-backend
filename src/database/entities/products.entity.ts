@@ -7,6 +7,8 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
+import { ProductCategory } from '#database/entities/product-categories.entity';
+
 import { Wishlist } from './wishlist.entity';
 
 @Entity('products')
@@ -37,6 +39,12 @@ export class Product {
 
   @Column({ type: 'int', default: 0 })
   reviewCount: number;
+
+  @OneToMany(
+    () => ProductCategory,
+    (productCategory) => productCategory.product,
+  )
+  productCategories: ProductCategory[];
 
   @OneToMany(() => Wishlist, (wishlist) => wishlist.product)
   wishlist: Wishlist[];

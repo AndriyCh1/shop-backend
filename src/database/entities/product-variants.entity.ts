@@ -3,12 +3,15 @@ import {
   CreateDateColumn,
   Entity,
   Index,
+  JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
 import { Product } from './products.entity';
+
+export type Attributes = Record<string, string>;
 
 @Entity('product_variants')
 export class ProductVariant {
@@ -20,7 +23,11 @@ export class ProductVariant {
     onDelete: 'CASCADE',
     nullable: false,
   })
+  @JoinColumn({ name: 'productId' })
   product: Product;
+
+  @Column({ type: 'int' })
+  productId: number;
 
   @Column({ type: 'text', nullable: true })
   name?: string;
@@ -47,8 +54,8 @@ export class ProductVariant {
   stockQuantity: number;
 
   @Index({ fulltext: true })
-  @Column({ type: 'jsonb', nullable: true })
-  attributes?: Record<string, unknown>;
+  @Column({ type: 'jsonb', nullable: false, default: {} })
+  attributes: Attributes;
 
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;

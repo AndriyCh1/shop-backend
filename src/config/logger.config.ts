@@ -9,6 +9,7 @@ export const winstonLoggerConfig: WinstonModuleOptions = {
         winston.format.align(),
         winston.format.printf((info) => {
           const ctx = info.context ?? '';
+
           return `[${info.level.toUpperCase()}] ${info.timestamp} [${ctx}] ${
             info.message
           }`;

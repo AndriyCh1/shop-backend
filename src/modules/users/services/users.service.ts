@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import bcrypt from 'bcrypt';
 import { Repository } from 'typeorm';
@@ -7,11 +7,14 @@ import { User } from '#database/entities/users.entity';
 import { UserAbilityFactory } from '#modules/auth/abilities/user.ability';
 import { Action } from '#modules/auth/policies/base-policy';
 import { UserResponseDto } from '#modules/users/dto/responses/user-response.dto';
+import { UserAlreadyExistsException } from '#modules/users/exceptions/user.exception';
 import {
   CreateUserData,
   UpdateUserData,
 } from '#modules/users/interfaces/user.interfaces';
 import { UserMapper } from '#modules/users/mappers/user.mapper';
+import { PermissionDeniedException } from '#shared/exceptions/permission.exception';
+import { hashPassword } from '#shared/utils/password.util';
 
 @Injectable()
 export class UserService {
@@ -20,21 +23,20 @@ export class UserService {
     private userRepository: Repository<User>,
   ) {}
 
-  async create(userData: CreateUserData): Promise<UserResponseDto> {
+  async create(payload: CreateUserData): Promise<UserResponseDto> {
     const userRecord = await this.userRepository.findOne({
-      where: { email: userData.email },
+      where: { email: payload.email },
     });
 
     if (userRecord) {
-      throw new BadRequestException('User already exists');
+      throw new UserAlreadyExistsException(payload.email);
     }
 
+    const passwordHash = await hashPassword(payload.password);
+
     const userInstance = this.userRepository.create({
-      email: userData.email,
-      firstName: userData.firstName,
-      lastName: userData.lastName,
-      passwordHash: userData.password,
-      role: userData.role,
+      ...payload,
+      passwordHash,
     });
 
     const savedUser = await this.userRepository.save(userInstance);
@@ -49,30 +51,25 @@ export class UserService {
   }
   async update(
     id: number,
-    newData: UpdateUserData,
+    payload: UpdateUserData,
     executor: Pick<User, 'id' | 'role'>,
   ): Promise<UserResponseDto> {
     const abilityForUser = new UserAbilityFactory(executor);
     const userPolicyAbility = abilityForUser.withUserPolicy();
 
     if (userPolicyAbility.cannot(Action.Update, { id })) {
-      throw new BadRequestException('Permission denied');
+      throw new PermissionDeniedException();
     }
 
-    const hashedPassword = newData.password
-      ? await bcrypt.hash(newData.password, 10)
+    const passwordHash = payload.password
+      ? await bcrypt.hash(payload.password, 10)
       : undefined;
 
     const updateUserResult = await this.userRepository
       .createQueryBuilder()
       .update()
       .where({ id })
-      .set({
-        firstName: newData.firstName,
-        lastName: newData.lastName,
-        passwordHash: hashedPassword,
-        role: newData.role,
-      })
+      .set({ ...payload, passwordHash })
       .returning('*') // Yeah, we need to do so much just to get the updated user - exciting times ahead!
       .execute();
 
@@ -84,7 +81,7 @@ export class UserService {
     const userPolicyAbility = abilityForUser.withUserPolicy();
 
     if (userPolicyAbility.cannot(Action.Delete, { id })) {
-      throw new BadRequestException('Permission denied');
+      throw new PermissionDeniedException();
     }
 
     await this.userRepository.delete(id);

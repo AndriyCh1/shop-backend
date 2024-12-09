@@ -20,8 +20,8 @@ import { User } from '#shared/decorators/user.decorator';
 export class UsersController {
   constructor(private usersService: UserService) {}
 
-  @UseGuards(JwtRefreshGuard)
   @Get(':id')
+  @UseGuards(JwtRefreshGuard)
   findOne(@Param('id') id: number): Promise<UserResponseDto> {
     return this.usersService.findOne(id);
   }

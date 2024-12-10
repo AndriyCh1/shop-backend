@@ -29,7 +29,7 @@ export class ProductVariant {
   @Column({ type: 'int' })
   productId: number;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: 'varchar', length: 255, nullable: true })
   name?: string;
 
   @Column({ type: 'text', nullable: true })
@@ -38,20 +38,20 @@ export class ProductVariant {
   @Column({ type: 'varchar', length: 165, nullable: true })
   shortDescription?: string;
 
-  @Column({ type: 'text', nullable: true })
-  note?: string;
-
-  @Column({ type: 'varchar', length: 255 })
-  sku: string;
-
-  @Column({ type: 'int' })
-  sequenceNumber: number;
+  @Column({ type: 'numeric' })
+  salePrice?: number;
 
   @Column({ type: 'numeric', nullable: true })
-  salePrice?: number;
+  comparedPrice?: number;
 
   @Column({ type: 'int', default: 0 })
   stockQuantity: number;
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  sku: string;
+
+  @Column({ type: 'smallint' })
+  displayOrder: number;
 
   @Index({ fulltext: true })
   @Column({ type: 'jsonb', nullable: false, default: {} })

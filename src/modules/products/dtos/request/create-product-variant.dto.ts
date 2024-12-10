@@ -10,12 +10,9 @@ export class CreateProductVariantDto {
   @IsString()
   name?: string;
 
-  @IsString()
-  sku: string;
-
   @IsOptional()
   @IsString()
-  notes?: string;
+  sku: string;
 
   @IsOptional()
   @IsString()
@@ -25,18 +22,23 @@ export class CreateProductVariantDto {
   @IsString()
   shortDescription?: string;
 
-  @IsInt()
-  @Min(1)
-  sequenceNumber: number;
+  @IsOptional()
+  @IsNumber()
+  salePrice: number;
 
   @IsOptional()
   @IsNumber()
-  salePrice?: number;
+  comparedPrice?: number;
 
+  @IsOptional()
   @IsNumber()
   @Min(0)
-  stockQuantity: number;
+  stockQuantity = 0;
 
   @IsOptional()
   attributes?: Attributes;
+
+  @IsInt()
+  @Min(1)
+  displayOrder: number;
 }

@@ -3,9 +3,11 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { ProductVariant } from '#database/entities/product-variants.entity';
-import { CreateProductVariantDto } from '#modules/products/dtos/request/create-product-variant.dto';
-import { UpdateProductVariantDto } from '#modules/products/dtos/request/update-product-variant.dto';
 import { ProductVariantNotFoundException } from '#modules/products/exceptions/product-variant.exceptions';
+import {
+  CreateProductVariantData,
+  UpdateProductVariantData,
+} from '#modules/products/interfaces/product-variant.interface';
 import { ProductVariantMapper } from '#modules/products/mappers/product-variant.mapper';
 
 @Injectable()
@@ -31,7 +33,7 @@ export class ProductVariantsService {
     return ProductVariantMapper.toResponse(variant);
   }
 
-  async createVariant(payload: CreateProductVariantDto) {
+  async createVariant(payload: CreateProductVariantData) {
     const variantInstance = this.variantsRepository.create(payload);
 
     return ProductVariantMapper.toResponse(
@@ -39,7 +41,7 @@ export class ProductVariantsService {
     );
   }
 
-  async updateVariant(id: number, payload: UpdateProductVariantDto) {
+  async updateVariant(id: number, payload: UpdateProductVariantData) {
     const { attributes: payloadAttributes, ...restPayload } = payload;
 
     const updateResult = await this.variantsRepository
@@ -70,4 +72,6 @@ export class ProductVariantsService {
       throw new ProductVariantNotFoundException(id);
     }
   }
+
+  // TODO: async addVariantImage(productId: number, variantId: number, image: string): Promise<void> {}
 }

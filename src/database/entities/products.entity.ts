@@ -16,23 +16,14 @@ export class Product {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'text' })
+  @Column({ type: 'varchar', length: 255 })
   name: string;
 
-  @Column({ type: 'numeric', default: 0 })
-  salePrice: number;
-
-  @Column({ type: 'text' })
+  @Column({ type: 'text', nullable: true })
   description: string;
 
   @Column({ type: 'varchar', length: 165 })
   shortDescription: string;
-
-  @Column({ type: 'text', nullable: true })
-  note?: string;
-
-  @Column({ type: 'text' })
-  previewImage: string;
 
   @Column({ type: 'int', default: 0 })
   cumulativeRatingSum: number;

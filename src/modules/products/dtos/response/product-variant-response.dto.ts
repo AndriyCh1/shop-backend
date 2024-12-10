@@ -7,7 +7,7 @@ export class ProductVariantResponseDto {
   description: ProductVariant['description'];
   shortDescription: ProductVariant['shortDescription'];
   sku: ProductVariant['sku'];
-  sequenceNumber: ProductVariant['sequenceNumber'];
+  displayOrder: ProductVariant['displayOrder'];
   salePrice: ProductVariant['salePrice'];
   stockQuantity: ProductVariant['stockQuantity'];
   attributes: ProductVariant['attributes'];

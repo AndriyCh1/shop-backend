@@ -9,10 +9,12 @@ export class ProductCategory {
   id: number;
 
   @Index()
-  @ManyToOne(() => Product, (product) => product.id)
+  @ManyToOne(() => Product, (product) => product.id, { onDelete: 'CASCADE' })
   product: Product;
 
   @Index()
-  @ManyToOne(() => Category, (category) => category.id)
+  @ManyToOne(() => Category, (category) => category.id, {
+    onDelete: 'SET NULL',
+  })
   category: Category;
 }

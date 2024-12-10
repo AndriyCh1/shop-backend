@@ -107,4 +107,6 @@ export class ProductsService {
       throw new ProductNotFoundException(id);
     }
   }
+
+  // TODO: async addProductImage(productId: number, image: string): Promise<void> {}
 }

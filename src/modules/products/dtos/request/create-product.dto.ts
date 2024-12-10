@@ -2,7 +2,6 @@ import {
   IsArray,
   IsInt,
   IsNotEmpty,
-  IsNumber,
   IsOptional,
   IsString,
 } from 'class-validator';
@@ -12,21 +11,13 @@ export class CreateProductDto {
   @IsString()
   name: string;
 
-  @IsNotEmpty()
-  @IsNumber()
-  salePrice: number;
-
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   description: string;
 
   @IsNotEmpty()
   @IsString()
   shortDescription: string;
-
-  @IsNotEmpty()
-  @IsString()
-  previewImage: string;
 
   @IsOptional()
   @IsArray()

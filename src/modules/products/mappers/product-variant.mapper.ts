@@ -10,7 +10,7 @@ export class ProductVariantMapper {
       description: entity.description,
       shortDescription: entity.shortDescription,
       sku: entity.sku,
-      sequenceNumber: entity.sequenceNumber,
+      displayOrder: entity.displayOrder,
       salePrice: entity.salePrice,
       stockQuantity: entity.stockQuantity,
       attributes: entity.attributes,

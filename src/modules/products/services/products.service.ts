@@ -1,28 +1,41 @@
+import { randomUUID } from 'node:crypto';
+
 import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 
 import { ProductCategory } from '#database/entities/product-categories.entity';
+import { ProductGallery } from '#database/entities/product-variant-gallery.entity';
 import { Product } from '#database/entities/products.entity';
 import { ProductResponseDto } from '#modules/products/dtos/response/product-response.dto';
-import {
-  FailedToCreateProductException,
-  ProductNotFoundException,
-} from '#modules/products/exceptions/product.exception';
+import { ProductNotFoundException } from '#modules/products/exceptions/product.exception';
 import {
   CreateProductData,
   UpdateProductData,
 } from '#modules/products/interfaces/product.interface';
 import { ProductMapper } from '#modules/products/mappers/product.mapper';
+import { S3Service } from '#providers/s3/s3.service';
+import { File } from '#shared/interfaces/file.interface';
+import { buildCloudfrontUrl } from '#shared/utils/build-cloudfront-url.util';
 
 @Injectable()
 export class ProductsService {
+  private readonly logger = new Logger(ProductsService.name);
+  private readonly bucketName: string;
+
   constructor(
     @InjectRepository(Product)
     private readonly productsRepository: Repository<Product>,
-    private readonly dataSource: DataSource,
-  ) {}
-  private readonly logger = new Logger(ProductsService.name);
+    @InjectRepository(ProductGallery)
+    private readonly productGalleryRepository: Repository<ProductGallery>,
+    @InjectRepository(ProductCategory)
+    private readonly productCategoriesRepository: Repository<ProductCategory>,
+    private readonly s3Service: S3Service,
+    private readonly configService: ConfigService,
+  ) {
+    this.bucketName = this.configService.get<string>('AWS_S3_BUCKET_NAME');
+  }
 
   async getAllProducts(): Promise<ProductResponseDto[]> {
     return ProductMapper.toResponseList(await this.productsRepository.find());
@@ -48,32 +61,33 @@ export class ProductsService {
   }
 
   async createProduct(payload: CreateProductData): Promise<ProductResponseDto> {
-    let savedProduct: Product;
+    const { categoryIds, images, ...restPayload } = payload;
 
-    try {
-      savedProduct = await this.dataSource.transaction(async (manager) => {
-        const { categoryIds, ...restPayload } = payload;
+    const savedProduct = await this.productsRepository.save(
+      this.productsRepository.create(restPayload),
+    );
 
-        const savedProduct = await manager
-          .getRepository(Product)
-          .save(manager.getRepository(Product).create(restPayload));
+    if (categoryIds.length) {
+      const productCategories = categoryIds.map((categoryId) =>
+        this.productCategoriesRepository.create({
+          product: savedProduct,
+          category: { id: categoryId },
+        }),
+      );
 
-        if (categoryIds.length) {
-          const productCategories = categoryIds.map((categoryId) =>
-            manager.getRepository(ProductCategory).create({
-              product: savedProduct,
-              category: { id: categoryId },
-            }),
-          );
+      try {
+        await this.productCategoriesRepository.save(productCategories);
+      } catch (error) {
+        this.logger.error(error);
+      }
+    }
 
-          await manager.getRepository(ProductCategory).save(productCategories);
-        }
-
-        return savedProduct;
-      });
-    } catch (error) {
-      this.logger.error(error);
-      throw new FailedToCreateProductException();
+    if (images) {
+      try {
+        await this.uploadProductImages(savedProduct.id, images);
+      } catch (error) {
+        this.logger.error(error);
+      }
     }
 
     return ProductMapper.toResponse(savedProduct);
@@ -108,5 +122,32 @@ export class ProductsService {
     }
   }
 
-  // TODO: async addProductImage(productId: number, image: string): Promise<void> {}
+  async uploadProductImages(
+    productId: number,
+    images: File[],
+  ): Promise<ProductGallery[]> {
+    const uploadToS3Promises = images.map(async (image) => {
+      const fileName = randomUUID();
+
+      await this.s3Service.putObject(
+        this.bucketName,
+        fileName,
+        image.buffer,
+        image.mimetype,
+      );
+
+      return fileName;
+    });
+
+    const imageNames = await Promise.all(uploadToS3Promises);
+
+    const productGallery = imageNames.map((image) =>
+      this.productGalleryRepository.create({
+        product: { id: productId },
+        image: buildCloudfrontUrl(image),
+      }),
+    );
+
+    return this.productGalleryRepository.save(productGallery);
+  }
 }

@@ -4,9 +4,13 @@ import {
   Delete,
   Get,
   Param,
+  ParseFilePipeBuilder,
   Post,
   Put,
+  UploadedFiles,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FilesInterceptor } from '@nestjs/platform-express';
 
 import { CreateProductVariantDto } from '#modules/products/dtos/request/create-product-variant.dto';
 import { UpdateProductVariantDto } from '#modules/products/dtos/request/update-product-variant.dto';
@@ -29,8 +33,18 @@ export class ProductVariantsController {
   }
 
   @Post()
-  createVariant(@Body() dto: CreateProductVariantDto) {
-    return this.productVariantsService.createVariant(dto);
+  @UseInterceptors(FilesInterceptor('images'))
+  createVariant(
+    @Body() dto: CreateProductVariantDto,
+    @UploadedFiles(
+      new ParseFilePipeBuilder()
+        .addFileTypeValidator({ fileType: 'image/*' })
+        .addMaxSizeValidator({ maxSize: 1024 * 1024 * 5 })
+        .build({ fileIsRequired: false }),
+    )
+    images?: Express.Multer.File[],
+  ) {
+    return this.productVariantsService.createVariant({ ...dto, images });
   }
 
   @Put(':id')

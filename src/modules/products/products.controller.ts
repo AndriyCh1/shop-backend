@@ -4,9 +4,13 @@ import {
   Delete,
   Get,
   Param,
+  ParseFilePipeBuilder,
   Post,
   Put,
+  UploadedFiles,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FilesInterceptor } from '@nestjs/platform-express';
 
 import { CreateProductDto } from '#modules/products/dtos/request/create-product.dto';
 import { UpdateProductDto } from '#modules/products/dtos/request/update-product.dto';
@@ -31,9 +35,20 @@ export class ProductsController {
     return this.productsService.getProductsByCategoryId(id);
   }
 
+  // TODO: Use `Sharp` to resize images
   @Post()
-  createProduct(@Body() dto: CreateProductDto) {
-    return this.productsService.createProduct(dto);
+  @UseInterceptors(FilesInterceptor('images'))
+  createProduct(
+    @Body() dto: CreateProductDto,
+    @UploadedFiles(
+      new ParseFilePipeBuilder()
+        .addFileTypeValidator({ fileType: 'image/*' })
+        .addMaxSizeValidator({ maxSize: 1024 * 1024 * 5 })
+        .build({ fileIsRequired: false }),
+    )
+    images?: Express.Multer.File[],
+  ) {
+    return this.productsService.createProduct({ ...dto, images });
   }
 
   @Put(':id')

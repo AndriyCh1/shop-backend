@@ -1,4 +1,5 @@
 import { Attributes } from '#database/entities/product-variants.entity';
+import { File } from '#shared/interfaces/file.interface';
 
 export interface CreateProductVariantData {
   productId: number;
@@ -11,6 +12,7 @@ export interface CreateProductVariantData {
   stockQuantity: number;
   displayOrder: number;
   attributes?: Attributes;
+  images?: File[];
 }
 
 export type UpdateProductVariantData = Partial<CreateProductVariantData>;

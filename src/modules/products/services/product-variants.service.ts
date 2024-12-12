@@ -1,7 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
+import { randomUUID } from 'crypto';
 import { Repository } from 'typeorm';
 
+import { ProductGallery } from '#database/entities/product-variant-gallery.entity';
 import { ProductVariant } from '#database/entities/product-variants.entity';
 import { ProductVariantNotFoundException } from '#modules/products/exceptions/product-variant.exceptions';
 import {
@@ -9,13 +12,25 @@ import {
   UpdateProductVariantData,
 } from '#modules/products/interfaces/product-variant.interface';
 import { ProductVariantMapper } from '#modules/products/mappers/product-variant.mapper';
+import { S3Service } from '#providers/s3/s3.service';
+import { File } from '#shared/interfaces/file.interface';
+import { buildCloudfrontUrl } from '#shared/utils/build-cloudfront-url.util';
 
 @Injectable()
 export class ProductVariantsService {
+  private readonly logger = new Logger(ProductVariantsService.name);
+  private readonly bucketName: string;
+
   constructor(
     @InjectRepository(ProductVariant)
     private readonly variantsRepository: Repository<ProductVariant>,
-  ) {}
+    @InjectRepository(ProductGallery)
+    private readonly productGalleryRepository: Repository<ProductGallery>,
+    private readonly s3Service: S3Service,
+    private readonly configService: ConfigService,
+  ) {
+    this.bucketName = this.configService.get<string>('AWS_S3_BUCKET_NAME');
+  }
 
   async getAllVariants() {
     return ProductVariantMapper.toResponseList(
@@ -34,11 +49,25 @@ export class ProductVariantsService {
   }
 
   async createVariant(payload: CreateProductVariantData) {
-    const variantInstance = this.variantsRepository.create(payload);
+    const { images, ...restPayload } = payload;
 
-    return ProductVariantMapper.toResponse(
-      await this.variantsRepository.save(variantInstance),
+    const createdVariant = await this.variantsRepository.save(
+      this.variantsRepository.create(restPayload),
     );
+
+    if (images) {
+      try {
+        await this.uploadProductVariantImages(
+          restPayload.productId,
+          createdVariant.id,
+          images,
+        );
+      } catch (error) {
+        this.logger.error(error);
+      }
+    }
+
+    return ProductVariantMapper.toResponse(createdVariant);
   }
 
   async updateVariant(id: number, payload: UpdateProductVariantData) {
@@ -73,5 +102,34 @@ export class ProductVariantsService {
     }
   }
 
-  // TODO: async addVariantImage(productId: number, variantId: number, image: string): Promise<void> {}
+  async uploadProductVariantImages(
+    productId: number,
+    productVariantId: number,
+    images: File[],
+  ): Promise<ProductGallery[]> {
+    const uploadToS3Promises = images.map(async (image) => {
+      const fileName = randomUUID();
+
+      await this.s3Service.putObject(
+        this.bucketName,
+        fileName,
+        image.buffer,
+        image.mimetype,
+      );
+
+      return fileName;
+    });
+
+    const imageNames = await Promise.all(uploadToS3Promises);
+
+    const productGallery = imageNames.map((image) =>
+      this.productGalleryRepository.create({
+        product: { id: productId },
+        productVariant: { id: productVariantId },
+        image: buildCloudfrontUrl(image),
+      }),
+    );
+
+    return this.productGalleryRepository.save(productGallery);
+  }
 }

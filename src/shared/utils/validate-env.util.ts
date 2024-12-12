@@ -17,5 +17,10 @@ export const validateEnv = () => {
     JWT_REFRESH_TOKEN_SECRET: str(),
     JWT_ACCESS_TOKEN_EXPIRATION: str(),
     JWT_REFRESH_TOKEN_EXPIRATION: str(),
+    AWS_S3_REGION: str(),
+    AWS_S3_BUCKET_NAME: str(),
+    AWS_S3_ACCESS_KEY: str(),
+    AWS_S3_SECRET_KEY: str(),
+    CLOUDFRONT_DOMAIN: str(),
   });
 };

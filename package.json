@@ -36,6 +36,7 @@
     "prepare": "husky"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.709.0",
     "@casl/ability": "^6.7.2",
     "@nest-lab/throttler-storage-redis": "^1.0.0",
     "@nestjs/common": "^10.0.0",
@@ -69,6 +70,7 @@
     "@types/bcrypt": "^5.0.2",
     "@types/express": "^4.17.17",
     "@types/jest": "^29.5.2",
+    "@types/multer": "^1.4.12",
     "@types/node": "^20.3.1",
     "@types/passport-jwt": "^4.0.1",
     "@types/supertest": "^2.0.12",

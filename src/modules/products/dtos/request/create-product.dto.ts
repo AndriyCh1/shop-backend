@@ -1,3 +1,4 @@
+import { Transform } from 'class-transformer';
 import {
   IsArray,
   IsInt,
@@ -22,5 +23,8 @@ export class CreateProductDto {
   @IsOptional()
   @IsArray()
   @IsInt({ each: true })
+  @Transform(({ value }: { value: string[] }) =>
+    !value ? [] : value.map(Number),
+  )
   categoryIds: number[] = [];
 }

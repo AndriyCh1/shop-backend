@@ -14,6 +14,8 @@ import { FilesInterceptor } from '@nestjs/platform-express';
 
 import { CreateProductVariantDto } from '#modules/products/dtos/request/create-product-variant.dto';
 import { UpdateProductVariantDto } from '#modules/products/dtos/request/update-product-variant.dto';
+import { ProductVariantResponseDto } from '#modules/products/dtos/response/product-variant-response.dto';
+import { ProductVariantMapper } from '#modules/products/mappers/product-variant.mapper';
 import { ProductVariantsService } from '#modules/products/services/product-variants.service';
 
 @Controller('product-variants')
@@ -23,18 +25,24 @@ export class ProductVariantsController {
   ) {}
 
   @Get()
-  getAllVariants() {
-    return this.productVariantsService.getAllVariants();
+  async getAllVariants(): Promise<ProductVariantResponseDto[]> {
+    return ProductVariantMapper.toResponseList(
+      await this.productVariantsService.getAllVariants(),
+    );
   }
 
   @Get(':id')
-  getVariant(@Param('id') id: number) {
-    return this.productVariantsService.getVariant(id);
+  async getVariant(
+    @Param('id') id: number,
+  ): Promise<ProductVariantResponseDto> {
+    return ProductVariantMapper.toResponse(
+      await this.productVariantsService.getVariant(id),
+    );
   }
 
   @Post()
   @UseInterceptors(FilesInterceptor('images'))
-  createVariant(
+  async createVariant(
     @Body() dto: CreateProductVariantDto,
     @UploadedFiles(
       new ParseFilePipeBuilder()
@@ -43,13 +51,20 @@ export class ProductVariantsController {
         .build({ fileIsRequired: false }),
     )
     images?: Express.Multer.File[],
-  ) {
-    return this.productVariantsService.createVariant({ ...dto, images });
+  ): Promise<ProductVariantResponseDto> {
+    return ProductVariantMapper.toResponse(
+      await this.productVariantsService.createVariant({ ...dto, images }),
+    );
   }
 
   @Put(':id')
-  updateVariant(@Param('id') id: number, @Body() dto: UpdateProductVariantDto) {
-    return this.productVariantsService.updateVariant(id, dto);
+  async updateVariant(
+    @Param('id') id: number,
+    @Body() dto: UpdateProductVariantDto,
+  ): Promise<ProductVariantResponseDto> {
+    return ProductVariantMapper.toResponse(
+      await this.productVariantsService.updateVariant(id, dto),
+    );
   }
 
   @Delete(':id')

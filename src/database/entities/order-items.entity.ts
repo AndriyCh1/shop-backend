@@ -28,10 +28,6 @@ export class OrderItem {
   @Column({ type: 'int' })
   quantity: number;
 
-  @Column({
-    type: 'numeric',
-    generatedType: 'STORED',
-    asExpression: 'price * quantity',
-  })
+  @Column({ type: 'numeric' })
   total: number;
 }

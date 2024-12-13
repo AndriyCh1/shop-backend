@@ -23,7 +23,7 @@ export class AuthService {
   ) {}
 
   async signup(payload: SignupData): Promise<TokensPair> {
-    const createdUser = await this.usersService.create(payload);
+    const createdUser = await this.usersService.createUser(payload);
 
     const tokens = await this.tokenService.generateTokenPair({
       sub: createdUser.id,

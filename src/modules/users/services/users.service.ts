@@ -6,13 +6,11 @@ import { Repository } from 'typeorm';
 import { User } from '#database/entities/users.entity';
 import { UserAbilityFactory } from '#modules/auth/abilities/user.ability';
 import { Action } from '#modules/auth/policies/base-policy';
-import { UserResponseDto } from '#modules/users/dto/responses/user-response.dto';
 import { UserAlreadyExistsException } from '#modules/users/exceptions/user.exception';
 import {
   CreateUserData,
   UpdateUserData,
 } from '#modules/users/interfaces/user.interfaces';
-import { UserMapper } from '#modules/users/mappers/user.mapper';
 import { PermissionDeniedException } from '#shared/exceptions/permission.exception';
 import { hashPassword } from '#shared/utils/password.util';
 
@@ -23,7 +21,7 @@ export class UserService {
     private userRepository: Repository<User>,
   ) {}
 
-  async create(payload: CreateUserData): Promise<UserResponseDto> {
+  async createUser(payload: CreateUserData): Promise<User> {
     const userRecord = await this.userRepository.findOne({
       where: { email: payload.email },
     });
@@ -41,19 +39,18 @@ export class UserService {
 
     const savedUser = await this.userRepository.save(userInstance);
 
-    return UserMapper.toResponse(savedUser);
+    return savedUser;
   }
 
-  async findOne(id: number): Promise<UserResponseDto> {
-    const user = await this.userRepository.findOne({ where: { id } });
-
-    return UserMapper.toResponse(user);
+  async getUser(id: number): Promise<User> {
+    return this.userRepository.findOne({ where: { id } });
   }
-  async update(
+
+  async updateUser(
     id: number,
     payload: UpdateUserData,
     executor: Pick<User, 'id' | 'role'>,
-  ): Promise<UserResponseDto> {
+  ): Promise<User> {
     const abilityForUser = new UserAbilityFactory(executor);
     const userPolicyAbility = abilityForUser.withUserPolicy();
 
@@ -73,10 +70,13 @@ export class UserService {
       .returning('*') // Yeah, we need to do so much just to get the updated user - exciting times ahead!
       .execute();
 
-    return UserMapper.toResponse(updateUserResult.raw[0]);
+    return updateUserResult.raw[0];
   }
 
-  async remove(id: number, executor: Pick<User, 'id' | 'role'>): Promise<void> {
+  async deleteUser(
+    id: number,
+    executor: Pick<User, 'id' | 'role'>,
+  ): Promise<void> {
     const abilityForUser = new UserAbilityFactory(executor);
     const userPolicyAbility = abilityForUser.withUserPolicy();
 

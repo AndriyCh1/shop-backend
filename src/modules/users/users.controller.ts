@@ -13,6 +13,7 @@ import { AuthUser } from '#modules/auth/interfaces/auth.interface';
 import { CreateUserDto } from '#modules/users/dto/requests/create-user.dto';
 import { UpdateUserDto } from '#modules/users/dto/requests/update-user.dto';
 import { UserResponseDto } from '#modules/users/dto/responses/user-response.dto';
+import { UserMapper } from '#modules/users/mappers/user.mapper';
 import { UserService } from '#modules/users/services/users.service';
 import { User } from '#shared/decorators/user.decorator';
 
@@ -22,22 +23,24 @@ export class UsersController {
 
   @Get(':id')
   @UseGuards(JwtRefreshGuard)
-  findOne(@Param('id') id: number): Promise<UserResponseDto> {
-    return this.usersService.findOne(id);
+  async findOne(@Param('id') id: number): Promise<UserResponseDto> {
+    return UserMapper.toResponse(await this.usersService.getUser(id));
   }
 
   @Post()
-  createUser(@Body() dto: CreateUserDto): Promise<UserResponseDto> {
-    return this.usersService.create(dto);
+  async createUser(@Body() dto: CreateUserDto): Promise<UserResponseDto> {
+    return UserMapper.toResponse(await this.usersService.createUser(dto));
   }
 
   @Put(':id')
   @UseGuards(JwtRefreshGuard)
-  updateUser(
+  async updateUser(
     @Param('id') id: number,
     @Body() dto: UpdateUserDto,
     @User() user: AuthUser,
   ): Promise<UserResponseDto> {
-    return this.usersService.update(id, dto, user);
+    return UserMapper.toResponse(
+      await this.usersService.updateUser(id, dto, user),
+    );
   }
 }

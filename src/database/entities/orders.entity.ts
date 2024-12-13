@@ -4,10 +4,12 @@ import {
   Entity,
   Index,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
+import { OrderItem } from './order-items.entity';
 import { OrderStatus } from './order-statuses.entity';
 import { UserAddress } from './user-addresses.entity';
 import { User } from './users.entity';
@@ -19,6 +21,12 @@ export class Order {
 
   @ManyToOne(() => User, (user) => user.id)
   user: User;
+
+  @OneToMany(() => OrderItem, (item) => item.order)
+  orderItems: OrderItem[];
+
+  @Column({ type: 'numeric' })
+  total: number;
 
   @Index()
   @ManyToOne(() => OrderStatus, (status) => status.id, { onDelete: 'SET NULL' })

@@ -14,6 +14,8 @@ import { FilesInterceptor } from '@nestjs/platform-express';
 
 import { CreateProductDto } from '#modules/products/dtos/request/create-product.dto';
 import { UpdateProductDto } from '#modules/products/dtos/request/update-product.dto';
+import { ProductResponseDto } from '#modules/products/dtos/response/product-response.dto';
+import { ProductMapper } from '#modules/products/mappers/product.mapper';
 import { ProductsService } from '#modules/products/services/products.service';
 
 @Controller('products')
@@ -21,24 +23,30 @@ export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
   @Get()
-  getAllProducts() {
-    return this.productsService.getAllProducts();
+  async getAllProducts(): Promise<ProductResponseDto[]> {
+    return ProductMapper.toResponseList(
+      await this.productsService.getAllProducts(),
+    );
   }
 
   @Get(':id')
-  getProduct(@Param('id') id: number) {
-    return this.productsService.getProduct(id);
+  async getProduct(@Param('id') id: number): Promise<ProductResponseDto> {
+    return ProductMapper.toResponse(await this.productsService.getProduct(id));
   }
 
   @Get('categories/:id')
-  getProductsByCategoryId(@Param('id') id: number) {
-    return this.productsService.getProductsByCategoryId(id);
+  async getProductsByCategoryId(
+    @Param('id') id: number,
+  ): Promise<ProductResponseDto[]> {
+    return ProductMapper.toResponseList(
+      await this.productsService.getProductsByCategoryId(id),
+    );
   }
 
   // TODO: Use `Sharp` to resize images
   @Post()
   @UseInterceptors(FilesInterceptor('images'))
-  createProduct(
+  async createProduct(
     @Body() dto: CreateProductDto,
     @UploadedFiles(
       new ParseFilePipeBuilder()
@@ -47,13 +55,20 @@ export class ProductsController {
         .build({ fileIsRequired: false }),
     )
     images?: Express.Multer.File[],
-  ) {
-    return this.productsService.createProduct({ ...dto, images });
+  ): Promise<ProductResponseDto> {
+    return ProductMapper.toResponse(
+      await this.productsService.createProduct({ ...dto, images }),
+    );
   }
 
   @Put(':id')
-  updateProduct(@Param('id') id: number, @Body() dto: UpdateProductDto) {
-    return this.productsService.updateProduct(id, dto);
+  async updateProduct(
+    @Param('id') id: number,
+    @Body() dto: UpdateProductDto,
+  ): Promise<ProductResponseDto> {
+    return ProductMapper.toResponse(
+      await this.productsService.updateProduct(id, dto),
+    );
   }
 
   @Delete(':id')

@@ -8,13 +8,11 @@ import { Repository } from 'typeorm';
 import { ProductCategory } from '#database/entities/product-categories.entity';
 import { ProductGallery } from '#database/entities/product-variant-gallery.entity';
 import { Product } from '#database/entities/products.entity';
-import { ProductResponseDto } from '#modules/products/dtos/response/product-response.dto';
 import { ProductNotFoundException } from '#modules/products/exceptions/product.exception';
 import {
   CreateProductData,
   UpdateProductData,
 } from '#modules/products/interfaces/product.interface';
-import { ProductMapper } from '#modules/products/mappers/product.mapper';
 import { S3Service } from '#providers/s3/s3.service';
 import { File } from '#shared/interfaces/file.interface';
 import { buildCloudfrontUrl } from '#shared/utils/build-cloudfront-url.util';
@@ -37,30 +35,30 @@ export class ProductsService {
     this.bucketName = this.configService.get<string>('AWS_S3_BUCKET_NAME');
   }
 
-  async getAllProducts(): Promise<ProductResponseDto[]> {
-    return ProductMapper.toResponseList(await this.productsRepository.find());
+  async getAllProducts(): Promise<Product[]> {
+    return this.productsRepository.find();
   }
 
-  async getProduct(id: number): Promise<ProductResponseDto> {
+  async getProduct(id: number): Promise<Product> {
     const product = await this.productsRepository.findOne({ where: { id } });
 
     if (!product) {
       throw new ProductNotFoundException(id);
     }
 
-    return ProductMapper.toResponse(product);
+    return product;
   }
 
-  async getProductsByCategoryId(id: number): Promise<ProductResponseDto[]> {
+  async getProductsByCategoryId(id: number): Promise<Product[]> {
     const products = await this.productsRepository.find({
       where: { productCategories: { category: { id } } },
       relations: ['productCategories'],
     });
 
-    return ProductMapper.toResponseList(products);
+    return products;
   }
 
-  async createProduct(payload: CreateProductData): Promise<ProductResponseDto> {
+  async createProduct(payload: CreateProductData): Promise<Product> {
     const { categoryIds, images, ...restPayload } = payload;
 
     const savedProduct = await this.productsRepository.save(
@@ -90,13 +88,13 @@ export class ProductsService {
       }
     }
 
-    return ProductMapper.toResponse(savedProduct);
+    return savedProduct;
   }
 
   async updateProduct(
     id: number,
     payload: UpdateProductData,
-  ): Promise<ProductResponseDto> {
+  ): Promise<Product> {
     const updateResult = await this.productsRepository
       .createQueryBuilder()
       .update(Product)
@@ -111,7 +109,7 @@ export class ProductsService {
       throw new ProductNotFoundException(id);
     }
 
-    return ProductMapper.toResponse(updateResult.raw[0]);
+    return updateResult.raw[0];
   }
 
   async removeProduct(id: number): Promise<void> {

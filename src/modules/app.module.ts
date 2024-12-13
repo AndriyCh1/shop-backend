@@ -11,6 +11,7 @@ import { typeORMConfig } from '#config/typeorm.config';
 import { AuthModule } from '#modules/auth/auth.module';
 import { CategoriesModule } from '#modules/categories/categories.module';
 import { HealthModule } from '#modules/health/health.module';
+import { OrdersModule } from '#modules/orders/orders.module';
 import { ProductsModule } from '#modules/products/products.module';
 import { UsersModule } from '#modules/users/users.module';
 import { AllExceptionsFilter } from '#shared/filters/exceptions-filter.filter';
@@ -43,6 +44,7 @@ import { ErrorHandlerService } from '#shared/utils/error-handler.util';
     AuthModule,
     ProductsModule,
     CategoriesModule,
+    OrdersModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: AllExceptionsFilter },

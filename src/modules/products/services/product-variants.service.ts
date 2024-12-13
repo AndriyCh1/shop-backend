@@ -11,7 +11,6 @@ import {
   CreateProductVariantData,
   UpdateProductVariantData,
 } from '#modules/products/interfaces/product-variant.interface';
-import { ProductVariantMapper } from '#modules/products/mappers/product-variant.mapper';
 import { S3Service } from '#providers/s3/s3.service';
 import { File } from '#shared/interfaces/file.interface';
 import { buildCloudfrontUrl } from '#shared/utils/build-cloudfront-url.util';
@@ -32,23 +31,23 @@ export class ProductVariantsService {
     this.bucketName = this.configService.get<string>('AWS_S3_BUCKET_NAME');
   }
 
-  async getAllVariants() {
-    return ProductVariantMapper.toResponseList(
-      await this.variantsRepository.find(),
-    );
+  async getAllVariants(): Promise<ProductVariant[]> {
+    return this.variantsRepository.find();
   }
 
-  async getVariant(id: number) {
+  async getVariant(id: number): Promise<ProductVariant> {
     const variant = await this.variantsRepository.findOne({ where: { id } });
 
     if (!variant) {
       throw new ProductVariantNotFoundException(id);
     }
 
-    return ProductVariantMapper.toResponse(variant);
+    return variant;
   }
 
-  async createVariant(payload: CreateProductVariantData) {
+  async createVariant(
+    payload: CreateProductVariantData,
+  ): Promise<ProductVariant> {
     const { images, ...restPayload } = payload;
 
     const createdVariant = await this.variantsRepository.save(
@@ -67,10 +66,13 @@ export class ProductVariantsService {
       }
     }
 
-    return ProductVariantMapper.toResponse(createdVariant);
+    return createdVariant;
   }
 
-  async updateVariant(id: number, payload: UpdateProductVariantData) {
+  async updateVariant(
+    id: number,
+    payload: UpdateProductVariantData,
+  ): Promise<ProductVariant> {
     const { attributes: payloadAttributes, ...restPayload } = payload;
 
     const updateResult = await this.variantsRepository
@@ -91,7 +93,7 @@ export class ProductVariantsService {
       throw new ProductVariantNotFoundException(id);
     }
 
-    return ProductVariantMapper.toResponse(updatedVariant);
+    return updatedVariant;
   }
 
   async removeVariant(id: number): Promise<void> {

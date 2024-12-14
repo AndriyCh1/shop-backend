@@ -22,5 +22,8 @@ export const validateEnv = () => {
     AWS_S3_ACCESS_KEY: str(),
     AWS_S3_SECRET_KEY: str(),
     CLOUDFRONT_DOMAIN: str(),
+    FRONTEND_URL: str(),
+    STRIPE_SECRET_KEY: str(),
+    STRIPE_WEBHOOK_SECRET: str(),
   });
 };

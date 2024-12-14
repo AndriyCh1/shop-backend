@@ -8,7 +8,12 @@ import { CustomValidationPipe } from '#shared/pipes/custom-validation.pipe';
 import { validateEnv } from '#shared/utils/validate-env.util';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+  const app = await NestFactory.create(AppModule, {
+    bufferLogs: true,
+    rawBody: true,
+  });
+
+  // app.use('/payments/webhook', raw({ type: '*/*' }));
 
   app.useGlobalPipes(new CustomValidationPipe());
 

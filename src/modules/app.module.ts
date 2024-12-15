@@ -1,20 +1,57 @@
+import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis';
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
-import { TerminusModule } from '@nestjs/terminus';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { APP_FILTER, APP_GUARD } from '@nestjs/core';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { WinstonModule } from 'nest-winston';
 
-import { databaseConfig } from '#config/database.config';
 import { winstonLoggerConfig } from '#config/logger.config';
-import { HealthController } from '#modules/health/health.controller';
+import { typeORMConfig } from '#config/typeorm.config';
+import { AuthModule } from '#modules/auth/auth.module';
+import { CategoriesModule } from '#modules/categories/categories.module';
+import { HealthModule } from '#modules/health/health.module';
+import { OrdersModule } from '#modules/orders/orders.module';
+import { PaymentsModule } from '#modules/payments/payments.module';
+import { ProductsModule } from '#modules/products/products.module';
+import { UsersModule } from '#modules/users/users.module';
+import { AllExceptionsFilter } from '#shared/filters/exceptions-filter.filter';
+import { ErrorHandlerService } from '#shared/utils/error-handler.util';
 
 @Module({
   imports: [
-    ConfigModule.forRoot(),
-    TerminusModule,
-    TypeOrmModule.forRootAsync(databaseConfig),
+    ConfigModule.forRoot({ isGlobal: true }),
     WinstonModule.forRoot(winstonLoggerConfig),
+    ThrottlerModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        throttlers: [
+          {
+            limit: configService.get<number>('THROTTLER_LIMIT'),
+            ttl: configService.get<number>('THROTTLER_TTL'),
+          },
+        ],
+        storage: new ThrottlerStorageRedisService({
+          host: configService.get<string>('REDIS_HOST'),
+          port: configService.get<number>('REDIS_PORT'),
+          password: configService.get<string>('REDIS_PASSWORD'),
+        }),
+      }),
+    }),
+    HealthModule,
+    TypeOrmModule.forRootAsync(typeORMConfig),
+    UsersModule,
+    AuthModule,
+    ProductsModule,
+    CategoriesModule,
+    OrdersModule,
+    PaymentsModule,
   ],
-  controllers: [HealthController],
+  providers: [
+    { provide: APP_FILTER, useClass: AllExceptionsFilter },
+    ErrorHandlerService,
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
+  ],
 })
 export class AppModule {}

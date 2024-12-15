@@ -8,13 +8,13 @@ import {
 @Controller('health')
 export class HealthController {
   constructor(
-    private readonly health: HealthCheckService,
-    private readonly db: TypeOrmHealthIndicator,
+    private health: HealthCheckService,
+    private db: TypeOrmHealthIndicator,
   ) {}
 
   @Get()
   @HealthCheck()
-  check() {
+  async check() {
     return this.health.check([() => this.db.pingCheck('database')]);
   }
 }

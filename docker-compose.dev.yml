@@ -10,7 +10,7 @@ services:
     volumes:
       - ./pgdata:/var/lib/postgresql/mydata
     ports:
-      - ${DATABASE_PORT}:5432
+      - ${DATABASE_PORT:-5432}:5432
 
   server:
     container_name: server
@@ -21,9 +21,18 @@ services:
     environment:
       - SERVER_PORT=3000
     ports:
-      - ${SERVER_PORT}:3000
+      - ${SERVER_PORT:-3000}:3000
     depends_on:
       - 'db'
     volumes:
       - .:/app
       - /app/node_modules
+
+  redis:
+    container_name: redis
+    image: redis:7.2.3
+    ports:
+      - '${REDIS_PORT:-6379}:6379'
+    command: >
+      --requirepass ${REDIS_PASSWORD}
+    restart: unless-stopped

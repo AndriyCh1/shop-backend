@@ -9,11 +9,9 @@ import {
 import { UserRole } from '#shared/constants/user-role.enum';
 
 export class SignupDto {
-  @IsEmail()
   @IsNotEmpty()
   firstName: string;
 
-  @IsEmail()
   @IsNotEmpty()
   lastName: string;
 

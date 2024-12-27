@@ -9,6 +9,7 @@ import { WinstonModule } from 'nest-winston';
 import { winstonLoggerConfig } from '#config/logger.config';
 import { typeORMConfig } from '#config/typeorm.config';
 import { AuthModule } from '#modules/auth/auth.module';
+import { CartModule } from '#modules/cart/cart.module';
 import { CategoriesModule } from '#modules/categories/categories.module';
 import { HealthModule } from '#modules/health/health.module';
 import { OrdersModule } from '#modules/orders/orders.module';
@@ -47,6 +48,7 @@ import { ErrorHandlerService } from '#shared/utils/error-handler.util';
     CategoriesModule,
     OrdersModule,
     PaymentsModule,
+    CartModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: AllExceptionsFilter },

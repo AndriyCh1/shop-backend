@@ -15,7 +15,9 @@ import { HealthModule } from '#modules/health/health.module';
 import { OrdersModule } from '#modules/orders/orders.module';
 import { PaymentsModule } from '#modules/payments/payments.module';
 import { ProductsModule } from '#modules/products/products.module';
+import { ReviewsModule } from '#modules/reviews/reviews.module';
 import { UsersModule } from '#modules/users/users.module';
+import { WishlistModule } from '#modules/wishlist/wishlist.module';
 import { AllExceptionsFilter } from '#shared/filters/exceptions-filter.filter';
 import { ErrorHandlerService } from '#shared/utils/error-handler.util';
 
@@ -49,6 +51,8 @@ import { ErrorHandlerService } from '#shared/utils/error-handler.util';
     OrdersModule,
     PaymentsModule,
     CartModule,
+    ReviewsModule,
+    WishlistModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: AllExceptionsFilter },

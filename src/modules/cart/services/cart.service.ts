@@ -5,13 +5,15 @@ import { Repository } from 'typeorm';
 import { CartItem } from '#database/entities/cart-items.entity';
 import { Cart } from '#database/entities/carts.entity';
 import { ProductVariant } from '#database/entities/product-variants.entity';
-import { CreateCartItemDto } from '#modules/cart/dtos/request/create-cart-item.dto';
-import { UpdateCartItemDto } from '#modules/cart/dtos/request/update-cart-item.dto';
 import {
   CartItemNotFoundException,
   CartNotFoundException,
   ProductVariantNotFoundException,
 } from '#modules/cart/exceptions/cart.exceptions';
+import {
+  CreateCartItemData,
+  UpdateCartItemData,
+} from '#modules/cart/interfaces/cart.interface';
 
 @Injectable()
 export class CartService {
@@ -24,7 +26,7 @@ export class CartService {
     private readonly productVariantRepository: Repository<ProductVariant>,
   ) {}
 
-  async getCart(userId: number): Promise<Cart> {
+  async getCart(userId: number): Promise<Cart | null> {
     const cart = await this.cartRepository.findOne({
       where: { user: { id: userId } },
       relations: [
@@ -37,7 +39,7 @@ export class CartService {
     return cart;
   }
 
-  async addToCart(userId: number, payload: CreateCartItemDto): Promise<Cart> {
+  async addToCart(userId: number, payload: CreateCartItemData): Promise<Cart> {
     const { productVariantId, quantity } = payload;
 
     const productVariant = await this.productVariantRepository.findOne({
@@ -64,6 +66,10 @@ export class CartService {
       });
     }
 
+    if (!cart) {
+      throw new CartNotFoundException();
+    }
+
     const existingItem = cart.cartItems.find(
       (item) => item.productVariant.id === productVariantId,
     );
@@ -83,13 +89,19 @@ export class CartService {
       );
     }
 
-    return this.getCart(userId);
+    const foundCart = await this.getCart(userId);
+
+    if (!foundCart) {
+      throw new CartNotFoundException();
+    }
+
+    return foundCart;
   }
 
   async updateCartItem(
     userId: number,
     cartItemId: number,
-    payload: UpdateCartItemDto,
+    payload: UpdateCartItemData,
   ): Promise<Cart> {
     const { quantity } = payload;
 
@@ -102,10 +114,19 @@ export class CartService {
       throw new CartItemNotFoundException();
     }
 
-    return this.getCart(userId);
+    const foundCart = await this.getCart(userId);
+
+    if (!foundCart) {
+      throw new CartNotFoundException();
+    }
+
+    return foundCart;
   }
 
-  async removeCartItem(userId: number, cartItemId: number): Promise<Cart> {
+  async removeCartItem(
+    userId: number,
+    cartItemId: number,
+  ): Promise<Cart | null> {
     const deletionResult = await this.cartItemsRepository.delete({
       id: cartItemId,
     });
@@ -116,7 +137,7 @@ export class CartService {
 
     const cart = await this.getCart(userId);
 
-    if (cart.cartItems.length === 0) {
+    if (cart?.cartItems.length === 0) {
       await this.clearCart(userId);
 
       return null;

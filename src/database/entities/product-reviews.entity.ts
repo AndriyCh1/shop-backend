@@ -36,7 +36,7 @@ export class ProductReview {
   rating: number;
 
   @Column({ type: 'text', nullable: true })
-  reviewText?: string;
+  comment?: string;
 
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;

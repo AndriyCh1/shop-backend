@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common';
@@ -7,12 +6,6 @@ import {
 export class OrderNotFoundException extends NotFoundException {
   constructor(id: number) {
     super(`Order with ID ${id} not found.`);
-  }
-}
-
-export class ShippingAddressNotProvedException extends BadRequestException {
-  constructor() {
-    super('Shipping address not provided.');
   }
 }
 

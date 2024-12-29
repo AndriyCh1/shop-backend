@@ -15,5 +15,6 @@ export const typeORMConfig = {
     entities: [__dirname + '/../database/entities/*.entity{.ts,.js}'],
     migrations: [__dirname + '/../database/migrations/*{.ts,.js}'],
     migrationsTableName: 'migrations_typeorm',
+    logging: process.env['NODE_ENV'] === 'development',
   }),
 };

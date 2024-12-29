@@ -25,7 +25,7 @@ export class ProductGallery {
   product: Product;
 
   @ManyToOne(() => ProductVariant, (variant) => variant.id, {
-    onDelete: 'SET NULL',
+    onDelete: 'CASCADE',
   })
   productVariant: ProductVariant;
 

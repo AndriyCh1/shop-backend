@@ -24,9 +24,7 @@ export class CartController {
 
   @Get()
   @UseGuards(JwtRefreshGuard)
-  async getCartSummary(
-    @User() user: AuthUser,
-  ): Promise<CartResponseDto | null> {
+  async getCart(@User() user: AuthUser): Promise<CartResponseDto | null> {
     const cart = await this.cartService.getCart(user.id);
 
     return cart && CartMapper.toResponse(cart);

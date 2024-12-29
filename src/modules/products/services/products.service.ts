@@ -3,7 +3,7 @@ import { randomUUID } from 'node:crypto';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Not, Repository } from 'typeorm';
 
 import { ProductCategory } from '#database/entities/product-categories.entity';
 import { ProductGallery } from '#database/entities/product-variant-gallery.entity';
@@ -13,9 +13,13 @@ import {
   CreateProductData,
   UpdateProductData,
 } from '#modules/products/interfaces/product.interface';
+import { ProductVariantsService } from '#modules/products/services/product-variants.service';
 import { S3Service } from '#providers/s3/s3.service';
 import { File } from '#shared/interfaces/file.interface';
-import { buildCloudfrontUrl } from '#shared/utils/build-cloudfront-url.util';
+import {
+  buildCloudfrontUrl,
+  removeCloudfrontDomain,
+} from '#shared/utils/build-cloudfront-url.util';
 
 @Injectable()
 export class ProductsService {
@@ -31,6 +35,7 @@ export class ProductsService {
     private readonly productCategoriesRepository: Repository<ProductCategory>,
     private readonly s3Service: S3Service,
     private readonly configService: ConfigService,
+    private readonly productVariantsService: ProductVariantsService,
   ) {
     this.bucketName = this.configService.get<string>('AWS_S3_BUCKET_NAME');
   }
@@ -98,7 +103,11 @@ export class ProductsService {
     const updateResult = await this.productsRepository
       .createQueryBuilder()
       .update(Product)
-      .set(payload)
+      .set({
+        name: payload.name,
+        description: payload.description,
+        shortDescription: payload.shortDescription,
+      })
       .where({ id })
       .returning('*')
       .execute();
@@ -109,15 +118,74 @@ export class ProductsService {
       throw new ProductNotFoundException(id);
     }
 
+    if (payload.categoryIds?.length) {
+      const existingProductCategories =
+        await this.productCategoriesRepository.find({
+          where: { product: { id } },
+        });
+
+      const categoryIdsToCreate: ProductCategory['id'][] = [];
+
+      payload.categoryIds.forEach((categoryId) => {
+        const existing = existingProductCategories.some(
+          (existingCategory) => existingCategory.categoryId === categoryId,
+        );
+
+        if (!existing) {
+          categoryIdsToCreate.push(categoryId);
+        }
+      });
+
+      await this.productCategoriesRepository.delete({
+        product: { id },
+        categoryId: Not(In(payload.categoryIds)),
+      });
+
+      await this.productCategoriesRepository.save(
+        categoryIdsToCreate.map((categoryId) => ({
+          product: { id },
+          category: { id: categoryId },
+        })),
+      );
+    }
+
     return updateResult.raw[0];
   }
 
   async removeProduct(id: number): Promise<void> {
-    const deleteResult = await this.productsRepository.delete(id);
+    const product = await this.productsRepository.findOne({
+      where: { id },
+      relations: ['productGallery'],
+    });
 
-    if (deleteResult.affected === 0) {
+    if (!product) {
       throw new ProductNotFoundException(id);
     }
+
+    await this.productVariantsService.removeVariantsByProductId(id);
+    await this.removeProductImages(product);
+    await this.productsRepository.delete(id);
+  }
+
+  private async removeProductImages(product: Product): Promise<void> {
+    const deleteS3ImagesPromises = product.productGallery.map((galleryItem) => {
+      return this.s3Service.removeObject(
+        this.bucketName,
+        removeCloudfrontDomain(galleryItem.image),
+      );
+    });
+
+    const deleteS3ImagesResult = await Promise.allSettled(
+      deleteS3ImagesPromises,
+    );
+
+    deleteS3ImagesResult.forEach((result) => {
+      if (result.status === 'rejected') {
+        this.logger.error(
+          `Failed to delete product images from S3: ${result.reason}`,
+        );
+      }
+    });
   }
 
   async uploadProductImages(

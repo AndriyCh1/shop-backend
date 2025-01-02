@@ -7,20 +7,29 @@ import {
   ParseFilePipeBuilder,
   Post,
   Put,
+  Query,
   UploadedFiles,
   UseInterceptors,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 
+import { CatalogQueryDto } from '#modules/products/dtos/request/catalog-query.dto';
 import { CreateProductDto } from '#modules/products/dtos/request/create-product.dto';
 import { UpdateProductDto } from '#modules/products/dtos/request/update-product.dto';
+import { ProductCatalogResponseDto } from '#modules/products/dtos/response/product-catalog.dto';
 import { ProductResponseDto } from '#modules/products/dtos/response/product-response.dto';
 import { ProductMapper } from '#modules/products/mappers/product.mapper';
+import { ProductCatalogMapper } from '#modules/products/mappers/product-catalog.mapper';
+import { ProductCatalogService } from '#modules/products/services/product-catalog.service';
 import { ProductsService } from '#modules/products/services/products.service';
+import { Paginated } from '#shared/interfaces/pagination.interface';
 
 @Controller('products')
 export class ProductsController {
-  constructor(private readonly productsService: ProductsService) {}
+  constructor(
+    private readonly productsService: ProductsService,
+    private readonly productCatalogService: ProductCatalogService,
+  ) {}
 
   @Get()
   async getAllProducts(): Promise<ProductResponseDto[]> {
@@ -29,8 +38,38 @@ export class ProductsController {
     );
   }
 
-  @Get(':id')
+  @Get('/catalog')
+  async getCatalog(
+    @Query() query?: CatalogQueryDto,
+  ): Promise<Paginated<ProductCatalogResponseDto[]>> {
+    const {
+      search,
+      categoryIds,
+      minPrice,
+      maxPrice,
+      minRating,
+      sortBy,
+      sortOrder,
+      page,
+      perPage,
+    } = query;
+    const { data, ...restCatalog } =
+      await this.productCatalogService.getCatalog({
+        filters: { search, categoryIds, minPrice, maxPrice, minRating },
+        pagination: { page, perPage },
+        sort: { sortBy, sortOrder },
+      });
+
+    return {
+      data: ProductCatalogMapper.toResponseList(data),
+      ...restCatalog,
+    };
+  }
+
+  @Get('/:id')
   async getProduct(@Param('id') id: number): Promise<ProductResponseDto> {
+    console.log('getProduct');
+
     return ProductMapper.toResponse(await this.productsService.getProduct(id));
   }
 

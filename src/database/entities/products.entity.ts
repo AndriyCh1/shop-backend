@@ -9,6 +9,7 @@ import {
 
 import { ProductCategory } from '#database/entities/product-categories.entity';
 import { ProductGallery } from '#database/entities/product-variant-gallery.entity';
+import { ProductVariant } from '#database/entities/product-variants.entity';
 
 import { Wishlist } from './wishlist.entity';
 
@@ -16,9 +17,6 @@ import { Wishlist } from './wishlist.entity';
 export class Product {
   @PrimaryGeneratedColumn()
   id: number;
-
-  @OneToMany(() => ProductGallery, (productGallery) => productGallery.product)
-  productGallery: ProductGallery[];
 
   @Column({ type: 'varchar', length: 255 })
   name: string;
@@ -28,6 +26,9 @@ export class Product {
 
   @Column({ type: 'varchar', length: 165 })
   shortDescription: string;
+
+  @Column({ type: 'int', default: 0 })
+  rating: number;
 
   @Column({ type: 'int', default: 0 })
   cumulativeRatingSum: number;
@@ -40,6 +41,14 @@ export class Product {
     (productCategory) => productCategory.product,
   )
   productCategories: ProductCategory[];
+
+  @OneToMany(() => ProductGallery, (productGallery) => productGallery.product)
+  productGallery: ProductGallery[];
+
+  @OneToMany(() => ProductVariant, (productVariant) => productVariant.product, {
+    nullable: false,
+  })
+  productVariants: ProductVariant[];
 
   @OneToMany(() => Wishlist, (wishlist) => wishlist.product)
   wishlist: Wishlist[];

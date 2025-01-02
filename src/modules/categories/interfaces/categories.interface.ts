@@ -1,8 +1,7 @@
 export interface CreateCategoryData {
   name: string;
   description?: string;
-  isRoot?: boolean;
-  isLeaf?: boolean;
+  parentId?: number;
 }
 
 export type UpdateCategoryData = Partial<CreateCategoryData>;

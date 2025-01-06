@@ -13,8 +13,8 @@ pipeline {
         stage ('Check Formatting and Linting') {
             steps {
               script  {
-                // sh "docker run shop-dfh:latest sh -c 'npm run format:verify'"
-                // sh "docker run shop-dfh:latest sh -c 'npm run lint'"
+                sh "docker run shop-dfh:latest sh -c 'npm run format:verify'"
+                sh "docker run shop-dfh:latest sh -c 'npm run lint'"
               }
             }
         }
@@ -50,8 +50,6 @@ pipeline {
                     sh "docker pull andriich/shop-dfh:latest"
                     sh "docker run -d --name shop-dfh -p 4000:3000 andriich/shop-dfh:latest"
                     sh "docker image prune -f"
-                    // sh "docker rmi shop-dfh:latest || true"
-                    // sh "docker rmi andriich/shop-dfh:latest || true"
                 }
               }
             }

@@ -21,6 +21,7 @@ export const typeORMConfig = {
       migrations: [__dirname + '/../database/migrations/*{.ts,.js}'],
       migrationsTableName: 'migrations_typeorm',
       logging: process.env['NODE_ENV'] === 'development',
+      ssl: { rejectUnauthorized: false },
     };
   },
 };

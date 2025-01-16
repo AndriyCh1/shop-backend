@@ -10,7 +10,10 @@ import {
 
 import { CreateCategoryDto } from '#modules/categories/dtos/request/create-category.dto';
 import { UpdateCategoryDto } from '#modules/categories/dtos/request/update-category.dto';
-import { CategoryResponseDto } from '#modules/categories/dtos/response/category-response.dto';
+import {
+  CategoryHierarchyItemResponseDto,
+  CategoryResponseDto,
+} from '#modules/categories/dtos/response/category-response.dto';
 import { CategoryNotFoundException } from '#modules/categories/exceptions/category.exceptions';
 import { CategoryMapper } from '#modules/categories/mappers/categories.mapper';
 import { CategoriesService } from '#modules/categories/services/categories.service';
@@ -26,7 +29,14 @@ export class CategoriesController {
     );
   }
 
-  @Get(':id')
+  @Get('/hierarchy')
+  async getAllNestedCategories(): Promise<CategoryHierarchyItemResponseDto[]> {
+    return CategoryMapper.toHierarchyResponse(
+      await this.categoriesService.getCategoriesHierarchy(),
+    );
+  }
+
+  @Get('/:id')
   async getCategory(@Param('id') id: number): Promise<CategoryResponseDto> {
     const category = await this.categoriesService.getCategory(id);
 
@@ -35,6 +45,15 @@ export class CategoriesController {
     }
 
     return CategoryMapper.toResponse(category);
+  }
+
+  @Get('/hierarchy/:id')
+  async getOneCategoryHierarchy(
+    @Param('id') id: number,
+  ): Promise<CategoryHierarchyItemResponseDto[]> {
+    return CategoryMapper.toHierarchyResponse(
+      await this.categoriesService.getCategoriesHierarchy({ id }),
+    );
   }
 
   @Post()

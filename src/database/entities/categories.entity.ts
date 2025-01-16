@@ -2,6 +2,9 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
+  JoinColumn,
+  ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -20,14 +23,18 @@ export class Category {
   @Column({ type: 'text', nullable: true })
   description?: string;
 
-  @Column({ type: 'boolean', default: false })
-  isRoot: boolean;
+  @Column({ type: 'int', nullable: true })
+  parentId?: number;
 
-  @Column({ type: 'boolean', default: false })
-  isLeaf: boolean;
+  @Index()
+  @JoinColumn({ name: 'parentId' })
+  @ManyToOne(() => Category, (category) => category.children, {
+    onDelete: 'CASCADE',
+  })
+  parent?: Category;
 
-  @Column({ type: 'jsonb', nullable: true })
-  metadata?: Record<string, unknown>;
+  @OneToMany(() => Category, (category) => category.parent)
+  children: Category[];
 
   @OneToMany(
     () => ProductCategory,

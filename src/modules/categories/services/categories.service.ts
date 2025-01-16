@@ -1,14 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 
 import { Category } from '#database/entities/categories.entity';
-import { CategoryParent } from '#database/entities/category-parents.entity';
 import {
   CategoryAlreadyExistsException,
   CategoryNotFoundException,
 } from '#modules/categories/exceptions/category.exceptions';
 import {
+  CategoryHierarchy,
   CreateCategoryData,
   UpdateCategoryData,
 } from '#modules/categories/interfaces/categories.interface';
@@ -18,8 +18,7 @@ export class CategoriesService {
   constructor(
     @InjectRepository(Category)
     private readonly categoriesRepository: Repository<Category>,
-    @InjectRepository(CategoryParent)
-    private readonly categoryParentsRepository: Repository<CategoryParent>,
+    private dataSource: DataSource,
   ) {}
 
   async getAllCategories(): Promise<Category[]> {
@@ -28,6 +27,29 @@ export class CategoriesService {
 
   async getCategory(id: number): Promise<Category> {
     return this.categoriesRepository.findOne({ where: { id } });
+  }
+
+  async getCategoriesHierarchy({ id }: { id?: number } = {}): Promise<
+    CategoryHierarchy[]
+  > {
+    const whereClause = id ? `WHERE id = $1` : 'WHERE "parentId" IS NULL';
+    const getCategoryHierarchyQuery = `
+      WITH RECURSIVE category_hierarchy AS (
+          SELECT c.*, 1 AS depth
+          FROM categories c
+          ${whereClause}
+          UNION ALL
+          SELECT c.*, ch.depth + 1
+          FROM categories c
+          INNER JOIN category_hierarchy ch ON c."parentId" = ch.id
+      )
+      SELECT * FROM category_hierarchy;
+    `;
+
+    return this.dataSource.manager.query<CategoryHierarchy[]>(
+      getCategoryHierarchyQuery,
+      id ? [id] : [],
+    );
   }
 
   async createCategory(payload: CreateCategoryData): Promise<Category> {
@@ -43,15 +65,9 @@ export class CategoriesService {
       this.categoriesRepository.create({
         name: payload.name,
         description: payload.description,
+        parentId: payload.parentId,
       }),
     );
-
-    if (payload.parentId !== undefined) {
-      await this.categoryParentsRepository.save({
-        category: { id: createdCategory.id },
-        parent: { id: payload.parentId },
-      });
-    }
 
     return createdCategory;
   }
@@ -74,6 +90,7 @@ export class CategoriesService {
       .set({
         name: newData.name,
         description: newData.description,
+        parentId: newData.parentId,
       })
       .where({ id })
       .returning('*')
@@ -83,13 +100,6 @@ export class CategoriesService {
 
     if (!updatedCategory) {
       throw new CategoryNotFoundException(id);
-    }
-
-    if (newData.parentId !== undefined) {
-      await this.categoryParentsRepository.update(
-        { category: { id } },
-        { parent: { id: newData.parentId } },
-      );
     }
 
     return updatedCategory;

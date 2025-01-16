@@ -28,6 +28,7 @@ export class AuthService {
     const tokens = await this.tokenService.generateTokenPair({
       sub: createdUser.id,
       role: createdUser.role,
+      email: createdUser.email,
     });
 
     return tokens;
@@ -54,6 +55,7 @@ export class AuthService {
     const tokens = await this.tokenService.generateTokenPair({
       sub: user.id,
       role: user.role,
+      email: user.email,
     });
 
     return tokens;
@@ -67,6 +69,7 @@ export class AuthService {
     const tokens = await this.tokenService.generateTokenPair({
       sub: tokenPayload.sub,
       role: tokenPayload.role,
+      email: tokenPayload.email,
     });
 
     return tokens;

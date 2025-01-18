@@ -11,17 +11,27 @@ export class CustomValidationPipe extends ValidationPipe {
       transform: true,
       whitelist: true,
       exceptionFactory: (errors: ValidationError[]) => {
-        if (errors.length > 0) {
-          const firstError = errors[0];
-          const message =
-            firstError.constraints[Object.keys(firstError.constraints)[0]];
+        const errorMessages = this.extractErrorMessages(errors);
 
-          return new BadRequestException(message);
-        }
-
-        return new BadRequestException('Validation failed');
+        return new BadRequestException(errorMessages[0]);
       },
       ...options,
     });
   }
+
+  private extractErrorMessages = (errors: ValidationError[]): string[] => {
+    const messages: string[] = [];
+
+    errors.forEach((error) => {
+      if (error.constraints) {
+        messages.push(...Object.values(error.constraints));
+      }
+
+      if (error.children && error.children.length > 0) {
+        messages.push(...this.extractErrorMessages(error.children));
+      }
+    });
+
+    return messages;
+  };
 }

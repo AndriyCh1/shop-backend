@@ -8,23 +8,24 @@ export const winstonLoggerConfig: WinstonModuleOptions = {
         winston.format.timestamp({ format: 'MM-DD-YYYY HH:mm:ss.SSS' }),
         winston.format.align(),
         winston.format.printf((info) => {
-          const ctx = info.context ?? '';
+          const stack = info?.stack ? `\n${info.stack}` : '';
 
-          return `[${info.level.toUpperCase()}] ${info.timestamp} [${ctx}] ${
-            info.message
-          }`;
+          return `[${info.level.toUpperCase()}] ${info.timestamp} [${
+            info.context ?? ''
+          }]: ${info.message} ${stack}`;
         }),
+        winston.format.errors({ stack: true }),
         winston.format.colorize({
           all: true,
           colors: {
             info: 'green blue',
             warn: 'italic yellow',
             error: 'bold red',
-            debug: 'purple',
+            debug: 'magenta',
           },
         }),
       ),
     }),
   ],
-  level: 'debug',
+  level: 'silly',
 };

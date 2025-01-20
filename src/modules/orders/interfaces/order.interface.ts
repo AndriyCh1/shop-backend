@@ -1,10 +1,17 @@
 export interface ShippingAddressData {
   addressLine1: string;
   addressLine2?: string;
-  phoneNumber?: string;
   country: string;
   postalCode: string;
   city: string;
+  state?: string;
+}
+
+export interface ContactInfoData {
+  firstName?: string;
+  lastName?: string;
+  phoneNumber?: string;
+  email?: string;
 }
 
 export interface CreateOrderData {
@@ -13,6 +20,6 @@ export interface CreateOrderData {
     productVariantId: number;
     quantity: number;
   }[];
-  shippingAddressId?: number;
-  shippingAddress?: ShippingAddressData;
+  shippingAddress: ShippingAddressData;
+  contactInfo: ContactInfoData;
 }

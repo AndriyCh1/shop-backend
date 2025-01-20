@@ -1,5 +1,12 @@
-import { Entity, Index, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Entity,
+  Index,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
+import { CartItem } from './cart-items.entity';
 import { User } from './users.entity';
 
 @Entity('carts')
@@ -13,4 +20,7 @@ export class Cart {
     onDelete: 'CASCADE',
   })
   user: User;
+
+  @OneToMany(() => CartItem, (cartItem) => cartItem.cart)
+  cartItems: CartItem[];
 }

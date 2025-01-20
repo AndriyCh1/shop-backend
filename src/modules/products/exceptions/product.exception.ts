@@ -14,3 +14,9 @@ export class FailedToCreateProductException extends UnprocessableEntityException
     super('Failed to create product');
   }
 }
+
+export class NotSufficientDataToCreateProductException extends UnprocessableEntityException {
+  constructor() {
+    super('Not sufficient data to create product');
+  }
+}

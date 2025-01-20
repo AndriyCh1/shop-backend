@@ -1,7 +1,8 @@
-import { IsBoolean, IsOptional, IsString } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateCategoryDto {
   @IsString()
+  @IsNotEmpty()
   name: string;
 
   @IsOptional()
@@ -9,10 +10,5 @@ export class CreateCategoryDto {
   description?: string;
 
   @IsOptional()
-  @IsBoolean()
-  isRoot?: boolean;
-
-  @IsOptional()
-  @IsBoolean()
-  isLeaf?: boolean;
+  parentId?: number;
 }

@@ -11,7 +11,6 @@ import {
 
 import { OrderItem } from './order-items.entity';
 import { OrderStatus } from './order-statuses.entity';
-import { UserAddress } from './user-addresses.entity';
 import { User } from './users.entity';
 
 @Entity('orders')
@@ -32,15 +31,43 @@ export class Order {
   @ManyToOne(() => OrderStatus, (status) => status.id, { onDelete: 'SET NULL' })
   orderStatus: OrderStatus;
 
-  // TODO: Possibly, we should store shipping address in a separate entity, since user may change it anytime
-  @ManyToOne(() => UserAddress, (address) => address.id)
-  shippingAddress: UserAddress;
-
   @Column({ type: 'timestamp', nullable: true })
   orderDeliveredCarrierDate?: Date;
 
   @Column({ type: 'timestamp', nullable: true })
   orderDeliveredUserDate?: Date;
+
+  @Column({ type: 'varchar', length: 100 })
+  customerFirstName?: string;
+
+  @Column({ type: 'varchar', length: 100 })
+  customerLastName?: string;
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  phoneNumber?: string;
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  email?: string;
+
+  @Column({ type: 'text' })
+  addressLine1: string;
+
+  @Column({ type: 'text', nullable: true })
+  addressLine2?: string;
+
+  @Column({ type: 'varchar', length: 255 })
+  country: string;
+
+  @Column({ type: 'varchar', length: 255 })
+  city: string;
+
+  @Column({ type: 'varchar', length: 255 })
+  state?: string;
+
+  @Column({ type: 'varchar', length: 255 })
+  postalCode: string;
+
+  // TODO: paymentMethod: string; // e.g. Stripe (enum)
 
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;

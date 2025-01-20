@@ -1,5 +1,9 @@
 import { DataSource } from 'typeorm';
 
+import { initializeTypeParsers } from './type-parsers';
+
+initializeTypeParsers();
+
 export const dataSource = new DataSource({
   type: 'postgres',
   host: process.env.DATABASE_HOST,

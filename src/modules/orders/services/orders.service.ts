@@ -14,7 +14,6 @@ import {
   NotEnoughStockException,
   OrderNotFoundException,
   ProductVariantNotFoundException,
-  ShippingAddressNotProvedException as ShippingAddressNotProvidedException,
 } from '#modules/orders/exceptions/order.exception';
 import { CreateOrderData } from '#modules/orders/interfaces/order.interface';
 
@@ -61,6 +60,9 @@ export class OrdersService {
         quantity: item.quantity,
         price: productVariant.salePrice,
         total: productVariant.salePrice * item.quantity,
+        productName: productVariant.product.name,
+        productVariantName: productVariant.name,
+        productVariantSku: productVariant.sku,
       });
 
       const savedOrderItem = await this.orderItemsRepository.save(
@@ -71,21 +73,13 @@ export class OrdersService {
       totalPrice += savedOrderItem.total;
     }
 
-    let shippingAddressId: UserAddress['id'] = null;
-
-    if (!payload.shippingAddressId && payload.shippingAddress) {
-      const savedShippingAddress = await this.userAddressRepository.save(
+    if (payload.shippingAddress) {
+      await this.userAddressRepository.save(
         this.userAddressRepository.create({
           user: { id: userId },
           ...payload.shippingAddress,
         }),
       );
-
-      shippingAddressId = savedShippingAddress.id;
-    } else if (payload.shippingAddressId) {
-      shippingAddressId = payload.shippingAddressId;
-    } else {
-      throw new ShippingAddressNotProvidedException();
     }
 
     const orderStatus = await this.orderStatusRepository.findOne({
@@ -95,9 +89,18 @@ export class OrdersService {
     const order = this.ordersRepository.create({
       user: { id: userId },
       total: totalPrice,
-      shippingAddress: { id: shippingAddressId },
       orderItems,
       orderStatus,
+      customerFirstName: payload.contactInfo.firstName,
+      customerLastName: payload.contactInfo.lastName,
+      phoneNumber: payload.contactInfo.phoneNumber,
+      email: payload.contactInfo.email,
+      addressLine1: payload.shippingAddress.addressLine1,
+      addressLine2: payload.shippingAddress.addressLine2,
+      country: payload.shippingAddress.country,
+      city: payload.shippingAddress.city,
+      state: payload.shippingAddress.state,
+      postalCode: payload.shippingAddress.postalCode,
     });
 
     return this.ordersRepository.save(order);

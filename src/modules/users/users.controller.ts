@@ -21,7 +21,13 @@ import { User } from '#shared/decorators/user.decorator';
 export class UsersController {
   constructor(private usersService: UserService) {}
 
-  @Get(':id')
+  @Get('me')
+  @UseGuards(JwtRefreshGuard)
+  async me(@User() user: AuthUser): Promise<UserResponseDto> {
+    return UserMapper.toResponse(await this.usersService.getUser(user.id));
+  }
+
+  @Get('/:id')
   @UseGuards(JwtRefreshGuard)
   async findOne(@Param('id') id: number): Promise<UserResponseDto> {
     return UserMapper.toResponse(await this.usersService.getUser(id));

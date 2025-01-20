@@ -1,5 +1,8 @@
 import { Category } from '#database/entities/categories.entity';
-import { CategoryResponseDto } from '#modules/categories/dtos/response/category-response.dto';
+import {
+  CategoryHierarchyItemResponseDto,
+  CategoryResponseDto,
+} from '#modules/categories/dtos/response/category-response.dto';
 
 export class CategoryMapper {
   static toResponse(entity: Category): CategoryResponseDto {
@@ -7,12 +10,23 @@ export class CategoryMapper {
       id: entity.id,
       name: entity.name,
       description: entity.description,
-      isRoot: entity.isRoot,
-      isLeaf: entity.isLeaf,
+      parentId: entity.parentId,
     };
   }
 
   static toResponseList(entities: Category[]): CategoryResponseDto[] {
     return entities.map((entity) => this.toResponse(entity));
+  }
+
+  static toHierarchyResponse(
+    entities: (Category & { depth: number })[],
+  ): CategoryHierarchyItemResponseDto[] {
+    return entities.map((entity) => ({
+      id: entity.id,
+      name: entity.name,
+      description: entity.description,
+      parentId: entity.parentId,
+      depth: entity.depth,
+    }));
   }
 }

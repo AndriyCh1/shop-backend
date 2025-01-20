@@ -13,7 +13,11 @@ import {
 } from '#modules/products/interfaces/product-variant.interface';
 import { S3Service } from '#providers/s3/s3.service';
 import { File } from '#shared/interfaces/file.interface';
-import { buildCloudfrontUrl } from '#shared/utils/build-cloudfront-url.util';
+import { OperationContext } from '#shared/interfaces/operation-context.interface';
+import {
+  buildCloudfrontUrl,
+  removeCloudfrontDomain,
+} from '#shared/utils/build-cloudfront-url.util';
 
 @Injectable()
 export class ProductVariantsService {
@@ -47,10 +51,15 @@ export class ProductVariantsService {
 
   async createVariant(
     payload: CreateProductVariantData,
+    ctx?: OperationContext,
   ): Promise<ProductVariant> {
     const { images, ...restPayload } = payload;
 
-    const createdVariant = await this.variantsRepository.save(
+    const variantsRepository = ctx?.entityManager
+      ? ctx.entityManager.getRepository(ProductVariant)
+      : this.variantsRepository;
+
+    const createdVariant = await variantsRepository.save(
       this.variantsRepository.create(restPayload),
     );
 
@@ -97,11 +106,52 @@ export class ProductVariantsService {
   }
 
   async removeVariant(id: number): Promise<void> {
-    const deleteResult = await this.variantsRepository.delete({ id });
+    const variant = await this.variantsRepository.findOne({
+      where: { id },
+      relations: ['productGallery'],
+    });
 
-    if (!deleteResult.affected) {
+    if (!variant) {
       throw new ProductVariantNotFoundException(id);
     }
+
+    await this.variantsRepository.delete({ id });
+    await this.removeVariantsImages([variant]);
+  }
+
+  async removeVariantsByProductId(productId: number): Promise<void> {
+    const variants = await this.variantsRepository.find({
+      where: { product: { id: productId } },
+      relations: ['productGallery'],
+    });
+
+    await this.removeVariantsImages(variants);
+    await this.variantsRepository.remove(variants);
+  }
+
+  private async removeVariantsImages(
+    variants: ProductVariant[],
+  ): Promise<void> {
+    const deleteS3ImagesPromises = variants.flatMap((variant) =>
+      variant.productGallery.map((galleryItem) => {
+        return this.s3Service.removeObject(
+          this.bucketName,
+          removeCloudfrontDomain(galleryItem.image),
+        );
+      }),
+    );
+
+    const deleteS3ImagesResult = await Promise.allSettled(
+      deleteS3ImagesPromises,
+    );
+
+    deleteS3ImagesResult.forEach((result) => {
+      if (result.status === 'rejected') {
+        this.logger.error(
+          `Failed to delete product variant images from S3: ${result.reason}`,
+        );
+      }
+    });
   }
 
   async uploadProductVariantImages(

@@ -1,64 +1,81 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 
 import { Category } from '#database/entities/categories.entity';
-import { CategoryResponseDto } from '#modules/categories/dtos/response/category-response.dto';
 import {
   CategoryAlreadyExistsException,
   CategoryNotFoundException,
 } from '#modules/categories/exceptions/category.exceptions';
 import {
+  CategoryHierarchy,
   CreateCategoryData,
   UpdateCategoryData,
 } from '#modules/categories/interfaces/categories.interface';
-import { CategoryMapper } from '#modules/categories/mappers/categories.mapper';
 
 @Injectable()
 export class CategoriesService {
   constructor(
     @InjectRepository(Category)
     private readonly categoriesRepository: Repository<Category>,
+    private dataSource: DataSource,
   ) {}
 
-  async getAllCategories(): Promise<CategoryResponseDto[]> {
-    return CategoryMapper.toResponseList(
-      await this.categoriesRepository.find(),
+  async getAllCategories(): Promise<Category[]> {
+    return this.categoriesRepository.find();
+  }
+
+  async getCategory(id: number): Promise<Category> {
+    return this.categoriesRepository.findOne({ where: { id } });
+  }
+
+  async getCategoriesHierarchy({ id }: { id?: number } = {}): Promise<
+    CategoryHierarchy[]
+  > {
+    const whereClause = id ? `WHERE id = $1` : 'WHERE "parentId" IS NULL';
+    const getCategoryHierarchyQuery = `
+      WITH RECURSIVE category_hierarchy AS (
+          SELECT c.*, 1 AS depth
+          FROM categories c
+          ${whereClause}
+          UNION ALL
+          SELECT c.*, ch.depth + 1
+          FROM categories c
+          INNER JOIN category_hierarchy ch ON c."parentId" = ch.id
+      )
+      SELECT * FROM category_hierarchy;
+    `;
+
+    return this.dataSource.manager.query<CategoryHierarchy[]>(
+      getCategoryHierarchyQuery,
+      id ? [id] : [],
     );
   }
 
-  async getCategory(id: number): Promise<CategoryResponseDto> {
-    const category = await this.categoriesRepository.findOne({ where: { id } });
-
-    if (!category) {
-      throw new CategoryNotFoundException(id);
-    }
-
-    return CategoryMapper.toResponse(category);
-  }
-
-  async createCategory(
-    categoryData: CreateCategoryData,
-  ): Promise<CategoryResponseDto> {
+  async createCategory(payload: CreateCategoryData): Promise<Category> {
     const category = await this.categoriesRepository.findOne({
-      where: { name: categoryData.name },
+      where: { name: payload.name },
     });
 
     if (category) {
-      throw new CategoryAlreadyExistsException(categoryData.name);
+      throw new CategoryAlreadyExistsException(payload.name);
     }
 
-    const categoryInstance = this.categoriesRepository.create(categoryData);
-
-    return CategoryMapper.toResponse(
-      await this.categoriesRepository.save(categoryInstance),
+    const createdCategory = await this.categoriesRepository.save(
+      this.categoriesRepository.create({
+        name: payload.name,
+        description: payload.description,
+        parentId: payload.parentId,
+      }),
     );
+
+    return createdCategory;
   }
 
   async updateCategory(
     id: number,
     newData: UpdateCategoryData,
-  ): Promise<CategoryResponseDto> {
+  ): Promise<Category> {
     const category = await this.categoriesRepository.findOne({
       where: { name: newData.name },
     });
@@ -70,7 +87,11 @@ export class CategoriesService {
     const updateResult = await this.categoriesRepository
       .createQueryBuilder()
       .update(Category)
-      .set(newData)
+      .set({
+        name: newData.name,
+        description: newData.description,
+        parentId: newData.parentId,
+      })
       .where({ id })
       .returning('*')
       .execute();
@@ -81,7 +102,7 @@ export class CategoriesService {
       throw new CategoryNotFoundException(id);
     }
 
-    return CategoryMapper.toResponse(updatedCategory);
+    return updatedCategory;
   }
 
   async deleteCategory(id: number): Promise<void> {

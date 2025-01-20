@@ -8,8 +8,9 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
+import { ProductVariant } from '#database/entities/product-variants.entity';
+
 import { Cart } from './carts.entity';
-import { Product } from './products.entity';
 
 @Entity('cart_items')
 export class CartItem {
@@ -23,8 +24,9 @@ export class CartItem {
   })
   cart: Cart;
 
-  @ManyToOne(() => Product, (product) => product.id)
-  product: Product;
+  @Index()
+  @ManyToOne(() => ProductVariant, (productVariant) => productVariant.id)
+  productVariant: ProductVariant;
 
   @Column({ type: 'int', default: 1 })
   quantity: number;

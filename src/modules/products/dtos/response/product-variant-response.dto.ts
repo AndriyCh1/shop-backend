@@ -9,6 +9,7 @@ export class ProductVariantResponseDto {
   sku: ProductVariant['sku'];
   displayOrder: ProductVariant['displayOrder'];
   salePrice: ProductVariant['salePrice'];
+  comparedPrice: ProductVariant['comparedPrice'];
   stockQuantity: ProductVariant['stockQuantity'];
   attributes: ProductVariant['attributes'];
 }

@@ -5,9 +5,12 @@ import {
   Index,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+
+import { ProductGallery } from '#database/entities/product-variant-gallery.entity';
 
 import { Product } from './products.entity';
 
@@ -39,7 +42,7 @@ export class ProductVariant {
   shortDescription?: string;
 
   @Column({ type: 'numeric' })
-  salePrice?: number;
+  salePrice: number;
 
   @Column({ type: 'numeric', nullable: true })
   comparedPrice?: number;
@@ -48,7 +51,7 @@ export class ProductVariant {
   stockQuantity: number;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
-  sku: string;
+  sku?: string;
 
   @Column({ type: 'smallint' })
   displayOrder: number;
@@ -56,6 +59,9 @@ export class ProductVariant {
   @Index({ fulltext: true })
   @Column({ type: 'jsonb', nullable: false, default: {} })
   attributes: Attributes;
+
+  @OneToMany(() => ProductGallery, (gallery) => gallery.productVariant)
+  productGallery: ProductGallery[];
 
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;

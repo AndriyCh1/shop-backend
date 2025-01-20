@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Stripe } from 'stripe';
@@ -9,6 +9,8 @@ import {
   OrderStatusEnum,
 } from '#database/entities/order-statuses.entity';
 import { Order } from '#database/entities/orders.entity';
+import { OrderNotFoundException } from '#modules/payments/exceptions/order.exceptions';
+import { CannotPayForOrderException } from '#modules/payments/exceptions/payment.exceptions';
 
 const CURRENCY = 'usd'; // NOTE: In scale, we should store currency in database
 
@@ -36,6 +38,7 @@ export class PaymentsService {
     const order = await this.ordersRepository.findOne({
       where: { id: orderId },
       relations: [
+        'orderStatus',
         'orderItems',
         'orderItems.productVariant',
         'orderItems.productVariant.product',
@@ -44,7 +47,14 @@ export class PaymentsService {
     });
 
     if (!order) {
-      throw new BadRequestException('Order not found');
+      throw new OrderNotFoundException(orderId);
+    }
+
+    if (
+      order.orderStatus.statusName === OrderStatusEnum.CANCELLED ||
+      order.orderStatus.statusName === OrderStatusEnum.PAID
+    ) {
+      throw new CannotPayForOrderException();
     }
 
     const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] =

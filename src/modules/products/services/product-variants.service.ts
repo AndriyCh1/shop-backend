@@ -13,6 +13,7 @@ import {
 } from '#modules/products/interfaces/product-variant.interface';
 import { S3Service } from '#providers/s3/s3.service';
 import { File } from '#shared/interfaces/file.interface';
+import { OperationContext } from '#shared/interfaces/operation-context.interface';
 import {
   buildCloudfrontUrl,
   removeCloudfrontDomain,
@@ -50,10 +51,15 @@ export class ProductVariantsService {
 
   async createVariant(
     payload: CreateProductVariantData,
+    ctx?: OperationContext,
   ): Promise<ProductVariant> {
     const { images, ...restPayload } = payload;
 
-    const createdVariant = await this.variantsRepository.save(
+    const variantsRepository = ctx?.entityManager
+      ? ctx.entityManager.getRepository(ProductVariant)
+      : this.variantsRepository;
+
+    const createdVariant = await variantsRepository.save(
       this.variantsRepository.create(restPayload),
     );
 

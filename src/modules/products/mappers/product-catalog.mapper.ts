@@ -7,6 +7,7 @@ export class ProductCatalogMapper {
       id: product.id,
       variantId: product.variantId,
       salePrice: product.salePrice,
+      comparedPrice: product.comparedPrice,
       name: product.name,
       description: product.description,
       shortDescription: product.shortDescription,

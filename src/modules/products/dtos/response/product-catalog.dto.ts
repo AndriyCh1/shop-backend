@@ -1,13 +1,16 @@
+import { Product } from '#database/entities/products.entity';
+
 export class ProductCatalogResponseDto {
-  id: number;
-  name: string;
-  variantId: number;
+  id: Product['id'];
+  name: Product['name'];
+  variantId: Product['id'];
   salePrice: number;
-  description: string;
-  shortDescription: string | null;
-  rating: number;
-  cumulativeRatingSum: number;
-  reviewCount: number;
+  comparedPrice: number | null;
+  description: Product['description'];
+  shortDescription: Product['shortDescription'];
+  rating: Product['rating'];
+  cumulativeRatingSum: Product['cumulativeRatingSum'];
+  reviewCount: Product['reviewCount'];
   image: string | null;
-  createdAt: Date;
+  createdAt: Product['createdAt'];
 }

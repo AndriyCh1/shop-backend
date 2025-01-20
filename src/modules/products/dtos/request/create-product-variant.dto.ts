@@ -2,6 +2,7 @@ import { Type } from 'class-transformer';
 import { IsInt, IsNumber, IsOptional, IsString, Min } from 'class-validator';
 
 import { Attributes } from '#database/entities/product-variants.entity';
+import { File } from '#shared/interfaces/file.interface';
 
 export class CreateProductVariantDto {
   @IsInt()
@@ -46,4 +47,6 @@ export class CreateProductVariantDto {
   @Min(1)
   @Type(() => Number)
   displayOrder: number;
+
+  images?: File[];
 }

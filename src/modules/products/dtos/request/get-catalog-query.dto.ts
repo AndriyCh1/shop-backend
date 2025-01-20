@@ -7,7 +7,7 @@ import {
   toNumberOrFallback,
 } from '#shared/utils/convert-types.util';
 
-export class CatalogQueryDto {
+export class GetCatalogQueryDto {
   @IsOptional()
   @IsString()
   search?: string;

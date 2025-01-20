@@ -13,7 +13,7 @@ export class Paginate<T> implements Paginated<T> {
   public data: Paginated<T>['data'];
   public meta: Paginated<T>['meta'];
 
-  constructor(payload: PaginatePayload<T>) {
+  constructor(payload: PaginatePayload<T[]>) {
     this.data = payload.data;
     this.meta = {
       total: payload.total,

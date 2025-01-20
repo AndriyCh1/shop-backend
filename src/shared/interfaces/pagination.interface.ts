@@ -1,5 +1,5 @@
 export interface Paginated<T> {
-  data: T;
+  data: T[];
   meta: {
     total: number; // NOTE: Total number of items (not number of pages)
     page: number;

@@ -24,6 +24,7 @@ export interface ProductCatalogEntity {
   name: string;
   variantId: number;
   salePrice: number;
+  comparedPrice: number | null;
   description: string;
   shortDescription: string | null;
   rating: number;
@@ -33,3 +34,14 @@ export interface ProductCatalogEntity {
   createdAt: Date;
   totalCount: number;
 }
+
+export type GetNewArrivalsOptions = {
+  pagination?: PaginationOptions;
+};
+
+export type GetBestSellersOptions = {
+  pagination?: PaginationOptions;
+  filters?: {
+    minRating?: number;
+  };
+};

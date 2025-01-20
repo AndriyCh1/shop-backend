@@ -12,6 +12,7 @@ export class ProductVariantMapper {
       sku: entity.sku,
       displayOrder: entity.displayOrder,
       salePrice: entity.salePrice,
+      comparedPrice: entity.comparedPrice,
       stockQuantity: entity.stockQuantity,
       attributes: entity.attributes,
     };

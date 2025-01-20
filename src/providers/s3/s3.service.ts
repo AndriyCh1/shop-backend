@@ -1,5 +1,6 @@
 import {
   DeleteObjectCommand,
+  DeleteObjectsCommand,
   GetObjectCommand,
   ListObjectsCommand,
   ListObjectsCommandOutput,
@@ -47,6 +48,47 @@ export class S3Service {
     }
   }
 
+  async putObjects(
+    bucketName: string,
+    objects: {
+      key: string;
+      body: PutObjectCommandInput['Body'];
+      contentType?: string;
+    }[],
+  ): Promise<PutObjectCommandOutput[]> {
+    if (!objects.length) {
+      return [];
+    }
+
+    const commands = objects.map(
+      (object) =>
+        new PutObjectCommand({
+          Bucket: bucketName,
+          Key: object.key,
+          Body: object.body,
+          ContentType: object.contentType,
+        }),
+    );
+
+    const putObjectsPromises = commands.map((command) =>
+      this.s3Client.send(command),
+    );
+
+    const result = await Promise.allSettled(putObjectsPromises);
+
+    result.forEach((result) => {
+      if (result.status === 'rejected') {
+        this.logger.error(
+          `Error putting an object in S3 during bulk upload: ${result.reason}`,
+        );
+      }
+    });
+
+    return result
+      .filter((result) => result.status === 'fulfilled')
+      .map((result) => result.value);
+  }
+
   async listObjects(
     bucketName: string,
     prefix?: string,
@@ -88,6 +130,25 @@ export class S3Service {
       return this.s3Client.send(command);
     } catch (error) {
       this.logger.error(`Error removing an object from S3: ${error}`);
+      throw error;
+    }
+  }
+  async removeObjects(bucketName: string, keys: string[]) {
+    if (!keys.length) {
+      return;
+    }
+
+    const command = new DeleteObjectsCommand({
+      Bucket: bucketName,
+      Delete: {
+        Objects: keys.map((key) => ({ Key: key })),
+      },
+    });
+
+    try {
+      return this.s3Client.send(command);
+    } catch (error) {
+      this.logger.error(`Error removing objects from S3: ${error}`);
       throw error;
     }
   }

@@ -48,7 +48,7 @@ pnpm run start:dev
 - **Categories** – Organizes products into categories.
 - **Wishlist** – Manages user wishlists.
 
-## Database
+## Database - ERD
 
 ![ERD Diagram](./docs/ERD.png)
 
